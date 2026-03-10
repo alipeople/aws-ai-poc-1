@@ -93,7 +93,7 @@ cp .env.example be/.env
 ### 3. 개발 서버 실행
 
 ```bash
-# FE(3000) + BE(8000) 동시 기동 (hot-reload 자동 적용)
+# FE(50000) + BE(50001) 동시 기동 (hot-reload 자동 적용)
 pnpm run dev
 ```
 
@@ -109,9 +109,9 @@ pnpm run dev:be
 
 ### 4. 접속
 
-- **Frontend**: http://localhost:3000 (포트 사용 중이면 3001로 자동 변경)
-- **Backend API**: http://localhost:8000
-- **API Health**: http://localhost:8000/api/health
+- **Frontend**: http://localhost:50000
+- **Backend API**: http://localhost:50001
+- **API Health**: http://localhost:50001/api/health
 
 ## 주요 API 엔드포인트
 

@@ -18,7 +18,7 @@ SSE(Server-Sent Events)를 통해 실시간 스트리밍을 구현합니다.
 
 ```mermaid
 flowchart LR
-    subgraph FE[프론트엔드 Next.js :3000]
+    subgraph FE[프론트엔드 Next.js :50000]
         Pages[App Router Pages]
         Hook[useSSE Hook]
         Ctx[SettingsContext]
@@ -68,7 +68,7 @@ flowchart LR
 
 ### 배포 전략
 
-- **로컬 개발**: Next.js(:3000) + Uvicorn(:8000) 직접 실행
+- **로컬 개발**: Next.js(:50000) + Uvicorn(:50001) 직접 실행
 - **프로덕션**: FastAPI를 Mangum으로 감싸 AWS Lambda에 배포
 
 ## 결과
