@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     )
 
     # CORS
-    cors_origins: List[str] = ["http://localhost:3000"]
+    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"]
 
     # AWS
     aws_region: str = "us-east-1"
