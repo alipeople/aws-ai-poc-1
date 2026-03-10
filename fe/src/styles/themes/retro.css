@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+[data-theme="retro"] {
+  --pri: #00FF41;
+  --priL: #80FF90;
+  --priD: #00CC33;
+  --acc: #FF00FF;
+  --accO: #FFFF00;
+  --ok: #00FFFF;
+  --bg: #0D0D0D;
+  --card: #1A1A1A;
+  --tx: #00FF41;
+  --tx2: #80FF90;
+  --tx3: #333333;
+  --bdr: #333333;
+  --font: 'Press Start 2P', monospace;
+  --radius: 0px;
+}

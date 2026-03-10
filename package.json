@@ -1,0 +1,17 @@
+{
+  "name": "sendon-ai-studio",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:fe\" \"npm run dev:be\" --names \"FE,BE\" --prefix-colors \"cyan,green\"",
+    "dev:fe": "npm --prefix fe run dev",
+    "dev:be": "cd be && uvicorn app.main:app --reload --port 8000",
+    "build:fe": "npm --prefix fe run build",
+    "build:be": "echo 'BE has no build step (Python)'",
+    "install:fe": "npm --prefix fe install",
+    "install:all": "npm run install:fe"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

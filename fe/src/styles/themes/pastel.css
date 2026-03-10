@@ -1,0 +1,16 @@
+[data-theme="pastel"] {
+  --pri: #E17055;
+  --priL: #FAB1A0;
+  --priD: #C0392B;
+  --acc: #6C5CE7;
+  --accO: #FDCB6E;
+  --ok: #00CEC9;
+  --bg: #FFF5F0;
+  --card: #FFFFFF;
+  --tx: #2D3436;
+  --tx2: #636E72;
+  --tx3: #B2BEC3;
+  --bdr: #FFDDD2;
+  --font: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 20px;
+}

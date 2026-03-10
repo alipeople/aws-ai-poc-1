@@ -1,0 +1,16 @@
+[data-theme="sendon"] {
+  --pri: #6C5CE7;
+  --priL: #A29BFE;
+  --priD: #5A4BD1;
+  --acc: #FF6B6B;
+  --accO: #FDCB6E;
+  --ok: #00B894;
+  --bg: #F5F6FA;
+  --card: #FFFFFF;
+  --tx: #2D3436;
+  --tx2: #636E72;
+  --tx3: #B2BEC3;
+  --bdr: #E8ECF1;
+  --font: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 16px;
+}
