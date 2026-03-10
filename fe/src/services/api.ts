@@ -7,6 +7,9 @@ import type {
   ChatRequest,
   UrlAnalysisResponse,
   ModelOption,
+  PersonalizationVar,
+  SpamScore,
+  FatigueAnalysis,
 } from '@/types/api';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
@@ -58,15 +61,15 @@ async function getModels(): Promise<ModelOption[]> {
 // ── Mock Data Endpoints ──────────────────────────────────────────────────────
 
 async function getPastMessages() {
-  return fetchJSON<unknown[]>('/api/mock/past-messages');
+  return fetchJSON<Record<string, unknown>[]>('/api/mock/past-messages');
 }
 
 async function getPastSuccessful() {
-  return fetchJSON<unknown[]>('/api/mock/past-successful');
+  return fetchJSON<Record<string, unknown>[]>('/api/mock/past-successful');
 }
 
 async function getPersonalizationVars() {
-  return fetchJSON<unknown[]>('/api/mock/personalization-vars');
+  return fetchJSON<PersonalizationVar[]>('/api/mock/personalization-vars');
 }
 
 async function getSeasonRecommendations() {
@@ -74,14 +77,14 @@ async function getSeasonRecommendations() {
 }
 
 async function getSpamScore(message: string) {
-  return fetchJSON<unknown>('/api/mock/spam-score', {
+  return fetchJSON<SpamScore>('/api/mock/spam-score', {
     method: 'POST',
     body: JSON.stringify({ message }),
   });
 }
 
 async function getFatigueAnalysis(target: string) {
-  return fetchJSON<unknown>('/api/mock/fatigue-analysis', {
+  return fetchJSON<Record<string, unknown>>('/api/mock/fatigue-analysis', {
     method: 'POST',
     body: JSON.stringify({ target }),
   });
@@ -106,6 +109,7 @@ export const api = {
     send_time: request.sendTime,
     agent_mode: request.agentMode,
     model_id: request.modelId,
+    tone_analysis: request.toneAnalysis,
   }),
   /** Build request body for chat endpoint */
   buildChatBody: (request: ChatRequest) => ({

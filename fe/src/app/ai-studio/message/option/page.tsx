@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import type { MessageVariant, SpamCheck, PersonalizationVar } from '@/types/api';
+import type { MessageVariant, SpamCheck, PersonalizationVar, FatigueAnalysis } from '@/types/api';
 import { useSSE } from '@/hooks/useSSE';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/services/api';
@@ -44,7 +44,7 @@ export default function OptionPage() {
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [spamScore, setSpamScore] = useState<{ score: number; checks: SpamCheck[] } | null>(null);
   const [personalizationVars, setPersonalizationVars] = useState<PersonalizationVar[]>([]);
-  const [fatigueData, setFatigueData] = useState<{ count: number; rate: number; recommendation: string } | null>(null);
+  const [fatigueData, setFatigueData] = useState<FatigueAnalysis | null>(null);
 
   const accumulatedTextRef = useRef('');
   const { streamSSE } = useSSE();
@@ -59,7 +59,7 @@ export default function OptionPage() {
       ]);
       setSpamScore(spam as { score: number; checks: SpamCheck[] });
       setPersonalizationVars(vars as PersonalizationVar[]);
-      setFatigueData(fatigue as { count: number; rate: number; recommendation: string });
+      setFatigueData(fatigue as unknown as FatigueAnalysis);
     } catch {
       // Mock data failure is non-critical
     }
@@ -197,8 +197,8 @@ export default function OptionPage() {
             )}
             {fatigueData && (
               <FatigueAlert
-                count={fatigueData.count}
-                rate={fatigueData.rate}
+                count={fatigueData.highFatigueCount}
+                rate={undefined}
                 recommendation={fatigueData.recommendation}
               />
             )}
