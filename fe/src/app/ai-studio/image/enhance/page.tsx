@@ -1,8 +1,5 @@
+import PlaceholderPage from '@/components/common/PlaceholderPage';
+
 export default function ImageEnhancePage() {
-  return (
-    <div style={{ padding: '24px' }}>
-      <h1>AI 이미지 — 이미지 개선</h1>
-      <p>이미지 개선 페이지 (추후 구현 예정)</p>
-    </div>
-  );
+  return <PlaceholderPage icon="✨" title="AI 이미지개선" description="이미지를 AI가 자동으로 개선합니다" />;
 }

@@ -1,9 +1,11 @@
 """
-AWS Lambda entry point using Mangum adapter.
+Lambda entry point for 센드온 AI 스튜디오 backend.
 
-IMPORTANT: SSE/streaming responses are NOT supported via Lambda + API Gateway.
-For streaming, use AWS Fargate or ECS deployment instead.
+IMPORTANT: SSE/streaming is NOT supported via AWS Lambda + API Gateway.
+For streaming responses, use AWS Fargate or ECS deployment instead.
 For Lambda: endpoints return complete JSON responses (non-streaming fallback).
+The non-streaming fallback is already implemented in be/app/routes/messages.py
+(checks Accept header — if not 'text/event-stream', returns complete JSON).
 """
 from mangum import Mangum
 from app.main import app

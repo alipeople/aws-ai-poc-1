@@ -1,8 +1,5 @@
+import PlaceholderPage from '@/components/common/PlaceholderPage';
+
 export default function AutomationSchedulePage() {
-  return (
-    <div style={{ padding: '24px' }}>
-      <h1>AI 자동화 — 정기발송 최적화</h1>
-      <p>정기발송 최적화 페이지 (추후 구현 예정)</p>
-    </div>
-  );
+  return <PlaceholderPage icon="📅" title="AI 정기발송최적화" description="정기 발송 일정을 AI가 최적화합니다" />;
 }

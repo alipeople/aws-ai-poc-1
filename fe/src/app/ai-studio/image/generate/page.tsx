@@ -1,8 +1,5 @@
+import PlaceholderPage from '@/components/common/PlaceholderPage';
+
 export default function ImageGeneratePage() {
-  return (
-    <div style={{ padding: '24px' }}>
-      <h1>AI 이미지 — 마케팅 이미지 생성</h1>
-      <p>마케팅 이미지 생성 페이지 (추후 구현 예정)</p>
-    </div>
-  );
+  return <PlaceholderPage icon="🖼️" title="AI 마케팅이미지생성" description="마케팅용 이미지를 AI가 생성합니다" />;
 }
