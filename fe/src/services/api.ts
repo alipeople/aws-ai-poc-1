@@ -84,7 +84,7 @@ async function getSpamScore(message: string) {
 }
 
 async function getFatigueAnalysis(target: string) {
-  return fetchJSON<Record<string, unknown>>('/api/mock/fatigue-analysis', {
+  return fetchJSON<unknown>('/api/mock/fatigue-analysis', {
     method: 'POST',
     body: JSON.stringify({ target }),
   });
