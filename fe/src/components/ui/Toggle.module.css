@@ -1,0 +1,49 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--tx);
+}
+
+.toggle {
+  width: 48px;
+  height: 26px;
+  border-radius: 13px;
+  position: relative;
+  transition: background 0.2s;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.toggleOn {
+  background: var(--pri);
+}
+
+.toggleOff {
+  background: var(--tx3);
+}
+
+.toggle::after {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 3px;
+  transition: left 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.toggleOn::after {
+  left: 25px;
+}
+
+.toggleOff::after {
+  left: 3px;
+}

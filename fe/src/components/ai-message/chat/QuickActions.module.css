@@ -1,0 +1,25 @@
+.row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: 1px solid var(--bdr);
+  border-radius: 20px;
+  background: #fff;
+  font-size: 12px;
+  color: var(--tx2);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.btn:hover {
+  border-color: var(--pri);
+  color: var(--pri);
+  background: #f0edff;
+}

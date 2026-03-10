@@ -1,0 +1,81 @@
+.panel {
+  position: sticky;
+  top: 24px;
+  background: var(--card);
+  border: 1px solid var(--bdr);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx);
+  margin-bottom: 16px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+.label {
+  color: var(--tx2);
+  flex-shrink: 0;
+}
+
+.value {
+  color: var(--tx);
+  text-align: right;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty {
+  color: var(--tx3);
+}
+
+.tip {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 10px;
+  background: rgba(253, 203, 110, 0.15);
+  border: 1px solid rgba(253, 203, 110, 0.4);
+}
+
+.tipTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e17055;
+  margin-bottom: 4px;
+}
+
+.tipText {
+  font-size: 12px;
+  color: var(--tx2);
+  line-height: 1.6;
+}
+
+.features {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--bdr);
+}
+
+.featuresTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tx);
+  margin-bottom: 8px;
+}
+
+.featuresList {
+  font-size: 12px;
+  color: var(--tx2);
+  line-height: 2.2;
+}

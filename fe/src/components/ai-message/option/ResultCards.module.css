@@ -1,0 +1,145 @@
+/* ResultCards — 3-column A/B/C variant grid */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.variantCard {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 2px solid var(--bdr);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.variantCard:hover {
+  border-color: var(--priL);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.1);
+}
+
+.variantCardSelected {
+  border-color: var(--pri);
+  box-shadow: 0 0 0 1px rgba(162, 155, 254, 0.4),
+    0 4px 24px rgba(108, 92, 231, 0.15);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cardLabel {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cardSubtitle {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 12px;
+}
+
+.messageBody {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.8;
+  min-height: 100px;
+  border: 1px solid var(--bdr);
+  margin-bottom: 14px;
+  color: var(--tx);
+}
+
+.statsRow {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  color: var(--tx3);
+  font-size: 11px;
+}
+
+.statValuePri {
+  font-weight: 700;
+  color: var(--pri);
+  font-size: 18px;
+}
+
+.statValueOk {
+  font-weight: 700;
+  color: var(--ok);
+  font-size: 18px;
+}
+
+.statValueNeutral {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--tx);
+}
+
+/* Action buttons row */
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.btnOutline {
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1.5px solid var(--bdr);
+  background: var(--card);
+  color: var(--tx);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btnOutline:hover {
+  border-color: var(--pri);
+  color: var(--pri);
+}
+
+.btnPrimary {
+  padding: 10px 24px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, var(--pri), var(--priL));
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+}

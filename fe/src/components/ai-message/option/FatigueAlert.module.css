@@ -1,0 +1,83 @@
+/* FatigueAlert — fatigue warning card */
+
+.wrapper {
+  background: rgba(253, 203, 110, 0.12);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  border: 1px solid rgba(253, 203, 110, 0.35);
+  margin-bottom: 20px;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.body {
+  flex: 1;
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.description {
+  font-size: 13px;
+  color: var(--tx2);
+  line-height: 1.6;
+}
+
+.highlight {
+  font-weight: 700;
+  color: #e17055;
+}
+
+.recommendation {
+  font-weight: 700;
+  color: var(--pri);
+}
+
+.separateBtn {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1.5px solid var(--bdr);
+  background: var(--card);
+  color: var(--tx);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.separateBtn:hover {
+  border-color: var(--pri);
+  color: var(--pri);
+}
+
+.separateBtnDone {
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1.5px solid var(--ok);
+  background: var(--card);
+  color: var(--ok);
+  cursor: default;
+  font-family: inherit;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
