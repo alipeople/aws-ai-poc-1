@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
+from app.routes import health, models, messages, analysis, mock_data
 
 app = FastAPI(
     title="센드온 AI 스튜디오 API",
@@ -16,10 +17,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-@app.get("/api/health")
-async def health_check():
-    return {
-        "status": "ok",
-        "available_models": settings.available_model_ids,
-    }
+# Route registrations
+app.include_router(health.router)
+app.include_router(models.router)
+app.include_router(messages.router)
+app.include_router(analysis.router)
+app.include_router(mock_data.router)
