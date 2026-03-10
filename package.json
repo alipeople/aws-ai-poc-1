@@ -3,15 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"npm run dev:fe\" \"npm run dev:be\" --names \"FE,BE\" --prefix-colors \"cyan,green\"",
-    "dev:fe": "npm --prefix fe run dev",
+    "dev": "concurrently \"pnpm run dev:fe\" \"pnpm run dev:be\" --names \"FE,BE\" --prefix-colors \"cyan,green\"",
+    "dev:fe": "pnpm -C fe run dev",
     "dev:be": "cd be && uvicorn app.main:app --reload --port 8000",
-    "build:fe": "npm --prefix fe run build",
+    "build:fe": "pnpm -C fe run build",
     "build:be": "echo 'BE has no build step (Python)'",
-    "install:fe": "npm --prefix fe install",
-    "install:all": "npm run install:fe"
+    "install:fe": "pnpm -C fe install",
+    "install:all": "pnpm run install:fe"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
-  }
+  },
+  "packageManager": "pnpm@10.30.2+sha512.36cdc707e7b7940a988c9c1ecf88d084f8514b5c3f085f53a2e244c2921d3b2545bc20dd4ebe1fc245feec463bb298aecea7a63ed1f7680b877dc6379d8d0cb4"
 }
