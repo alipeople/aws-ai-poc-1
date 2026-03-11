@@ -21,6 +21,8 @@ export interface SourceInputProps {
   onSourceTypeChange: (value: string) => void;
   url: string;
   onUrlChange: (value: string) => void;
+  onAnalyzeUrl?: () => void;
+  isAnalyzing?: boolean;
 }
 
 export function SourceInput({
@@ -30,6 +32,8 @@ export function SourceInput({
   onSourceTypeChange,
   url,
   onUrlChange,
+  onAnalyzeUrl,
+  isAnalyzing = false,
 }: SourceInputProps) {
   return (
     <Card>
@@ -79,8 +83,13 @@ export function SourceInput({
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
             />
-            <button type="button" className={styles.analyzeBtn}>
-              분석하기
+            <button
+              type="button"
+              className={styles.analyzeBtn}
+              onClick={onAnalyzeUrl}
+              disabled={!url || isAnalyzing}
+            >
+              {isAnalyzing ? '분석 중...' : '분석하기'}
             </button>
           </div>
         </div>

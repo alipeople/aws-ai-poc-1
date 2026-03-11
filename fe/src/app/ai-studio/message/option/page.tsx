@@ -29,6 +29,7 @@ export default function OptionPage() {
   const [source, setSource] = useState('');
   const [sourceType, setSourceType] = useState<'direct' | 'url' | 'past'>('direct');
   const [sourceUrl, setSourceUrl] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [season, setSeason] = useState('');
   const [target, setTarget] = useState('');
   const [sendTime, setSendTime] = useState('');
@@ -120,6 +121,7 @@ export default function OptionPage() {
 
   const handleUrlAnalyze = useCallback(async () => {
     if (!sourceUrl) return;
+    setIsAnalyzing(true);
     try {
       const result = await api.analyzeUrl(sourceUrl);
       const summary = [
@@ -134,7 +136,9 @@ export default function OptionPage() {
       setSource(summary);
       setSourceType('direct');
     } catch {
-      // URL analysis failure — user can type manually
+      setError('URL 분석에 실패했습니다. 직접 입력해주세요.');
+    } finally {
+      setIsAnalyzing(false);
     }
   }, [sourceUrl]);
 
@@ -159,6 +163,8 @@ export default function OptionPage() {
           onSourceTypeChange={(v) => setSourceType(v as 'direct' | 'url' | 'past')}
           url={sourceUrl}
           onUrlChange={setSourceUrl}
+          onAnalyzeUrl={handleUrlAnalyze}
+          isAnalyzing={isAnalyzing}
         />
         <SeasonSelector value={season} onChange={setSeason} />
         <TargetSelector
