@@ -9,6 +9,7 @@ HTML 프로토타입 기반의 AI 메시지 작성 POC. 옵션형(6단계 위자
 - **싱글/멀티 에이전트**: 단일 에이전트 vs 생성기→리뷰어→스팸체커 Graph 워크플로우 비교
 - **LLM 모델 전환**: Claude Sonnet 4, Claude Haiku, Amazon Nova Pro/Lite 선택
 - **5개 디자인 테마**: Sendon(기본), Toss Bank, Retro 8-bit, Dark, Pastel
+- **KISA 스팸 분석**: 멀티 에이전트 모드에서 AI가 KISA 기준 스팸 분류·광고표기 준수·위험 키워드를 실시간 분석
 
 ## 아키텍처
 
@@ -364,14 +365,14 @@ pnpm run dev:be
 | POST | `/api/messages/chat` | 대화형 채팅 (SSE 스트리밍) |
 | POST | `/api/analyze-url` | URL 분석 (LLM 기반) |
 | GET | `/api/mock/past-messages` | 과거 발송 이력 (mock) |
-| POST | `/api/mock/spam-score` | 스팸 점수 분석 (mock) |
+| POST | `/api/mock/spam-score` | 스팸 점수 분석 (mock, 레거시 — 멀티 에이전트 모드에서는 실제 AI 분석) |
 | POST | `/api/mock/fatigue-analysis` | 수신자 피로도 분석 (mock) |
 
 ## 개발용 설정 패널
 
 우측 하단 ⚙️ 버튼으로 열리는 플로팅 패널에서:
 
-- **에이전트 모드**: Single(직접 호출) / Multi(생성기→리뷰어) 전환
+- **에이전트 모드**: Single(직접 호출) / Multi(생성기→리뷰어→스팸체커) 전환
 - **LLM 모델**: Bedrock 모델 선택 (Claude Sonnet, Haiku, Nova 등)
 - **테마**: 5개 디자인 테마 실시간 전환
 

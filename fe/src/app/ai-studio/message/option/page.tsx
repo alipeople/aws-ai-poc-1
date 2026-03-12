@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import type { MessageVariant, SpamCheck, PersonalizationVar, FatigueAnalysis, SpamCheckerResult } from '@/types/api';
+import type { MessageVariant, PersonalizationVar, FatigueAnalysis, SpamCheckerResult } from '@/types/api';
 import { useSSE } from '@/hooks/useSSE';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/services/api';
@@ -15,7 +15,6 @@ import { SummaryPanel } from '@/components/ai-message/option/SummaryPanel';
 import { GenerateButton } from '@/components/ai-message/option/GenerateButton';
 import { LoadingAnimation } from '@/components/ai-message/option/LoadingAnimation';
 import { ResultCards } from '@/components/ai-message/option/ResultCards';
-import { SpamScore } from '@/components/ai-message/option/SpamScore';
 import { PersonalizationVars } from '@/components/ai-message/option/PersonalizationVars';
 import { FatigueAlert } from '@/components/ai-message/option/FatigueAlert';
 import { SpamCheckerAnalysis } from '@/components/ai-message/option/SpamCheckerAnalysis';
@@ -44,7 +43,6 @@ export default function OptionPage() {
   // Result state
   const [variants, setVariants] = useState<MessageVariant[]>([]);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const [spamScore, setSpamScore] = useState<{ score: number; checks: SpamCheck[] } | null>(null);
   const [personalizationVars, setPersonalizationVars] = useState<PersonalizationVar[]>([]);
   const [fatigueData, setFatigueData] = useState<FatigueAnalysis | null>(null);
   const [spamCheckerData, setSpamCheckerData] = useState<SpamCheckerResult | null>(null);
@@ -55,18 +53,16 @@ export default function OptionPage() {
 
   const fetchMockData = useCallback(async () => {
     try {
-      const [spam, vars, fatigue] = await Promise.all([
-        api.mockData.getSpamScore(source || '테스트 메시지'),
+      const [vars, fatigue] = await Promise.all([
         api.mockData.getPersonalizationVars(),
         api.mockData.getFatigueAnalysis(target || '전체'),
       ]);
-      setSpamScore(spam as { score: number; checks: SpamCheck[] });
       setPersonalizationVars(vars as PersonalizationVar[]);
       setFatigueData(fatigue as unknown as FatigueAnalysis);
     } catch {
       // Mock data failure is non-critical
     }
-  }, [source, target]);
+  }, [target]);
 
   const handleGenerate = useCallback(async () => {
     setIsLoading(true);
@@ -197,9 +193,6 @@ export default function OptionPage() {
               onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); }}
               onRegenerate={handleGenerate}
             />
-            {spamScore && (
-              <SpamScore score={spamScore.score} checks={spamScore.checks} />
-            )}
             {spamCheckerData && (
               <SpamCheckerAnalysis data={spamCheckerData} />
             )}
