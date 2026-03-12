@@ -68,13 +68,28 @@ class ModelProvider:
         """
         Create and return a Strands BedrockModel instance.
         
+        Uses boto3.Session with AWS_PROFILE when configured,
+        otherwise falls back to region_name (default credential chain).
+        
         Args:
             model_id: Bedrock model ID (cross-region inference format)
         
         Returns:
             BedrockModel instance for use with Strands Agent
         """
+        import boto3
         from strands.models.bedrock import BedrockModel
+
+        if settings.aws_profile:
+            session = boto3.Session(
+                profile_name=settings.aws_profile,
+                region_name=settings.aws_region,
+            )
+            return BedrockModel(
+                model_id=model_id,
+                boto_session=session,
+            )
+
         return BedrockModel(
             model_id=model_id,
             region_name=settings.aws_region,

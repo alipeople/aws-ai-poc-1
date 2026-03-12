@@ -4,7 +4,7 @@ from typing import List
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file="../.env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 
     # AWS
     aws_region: str = "us-east-1"
+    aws_profile: str = ""
     default_model_id: str = "us.anthropic.claude-sonnet-4-20250514-v1:0"
 
     # Available models (display list for FE)
