@@ -26,7 +26,7 @@ flowchart LR
     subgraph BE[백엔드 FastAPI :8000]
         Routes[API Routes]
         SingleSvc[Single Agent]
-        MultiSvc[Multi Agent]
+        MultiSvc[Multi Agent Graph]
         Mock[Mock Data]
     end
     subgraph AWS[AWS Cloud]
@@ -56,7 +56,7 @@ flowchart LR
 |---------|------|
 | API Routes | HTTP 엔드포인트, SSE 응답 생성 |
 | Single Agent | 단일 에이전트 파이프라인 |
-| Multi Agent | 순차적 이중 에이전트 파이프라인 |
+| Multi Agent | Graph 기반 이중 에이전트 파이프라인 (GraphBuilder) |
 | Mock Data | LLM 없이 개발/테스트용 목 응답 |
 
 ### 통신 흐름

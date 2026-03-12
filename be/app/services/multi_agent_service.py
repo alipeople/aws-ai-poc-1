@@ -1,10 +1,11 @@
 """
 Multi-Agent Service for message generation and chat.
-Sequential workflow: Generator Agent → Reviewer Agent.
+Graph-based workflow: Generator → Reviewer → Spam Checker via Strands SDK GraphBuilder.
 Uses AWS Strands Agents SDK with lazy imports to avoid ImportError without credentials.
 """
 import json
 import logging
+from dataclasses import dataclass
 from typing import AsyncIterator, Optional, List
 
 from app.services.model_provider import ModelProvider
@@ -14,32 +15,119 @@ from app.prompts.message_generator import (
     build_option_prompt,
     build_chat_system_prompt,
 )
-from app.prompts.message_reviewer import (
-    REVIEWER_SYSTEM_PROMPT,
-    build_review_prompt,
-    build_chat_review_prompt,
-)
+from app.prompts.message_reviewer import REVIEWER_SYSTEM_PROMPT
+from app.prompts.spam_checker import SPAM_CHECKER_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class AgentNodeSpec:
+    """Specification for an agent node in the multi-agent graph.
+
+    Attributes:
+        node_id: Unique identifier used as the graph node name and SSE agentName.
+        system_prompt: System prompt that defines the agent's behavior.
+    """
+
+    node_id: str
+    system_prompt: str
 
 
 class MultiAgentService:
     """
     Handles multi-agent message generation and chat via Strands Agents SDK.
 
-    Sequential workflow:
-    - Phase 1 (Generator): Produces initial marketing messages
-    - Phase 2 (Reviewer): Reviews and enhances the generated messages
+    Graph-based workflow using GraphBuilder:
+    - Node "generator": Produces initial marketing messages
+    - Node "reviewer": Reviews and enhances the generated messages
+    - Node "spam_checker": Analyzes messages for KISA spam classification
+    - Edges: generator → reviewer → spam_checker (linear chain)
 
-    Responsibilities:
-    - Stream Phase 1 events with agentName="generator"
-    - Stream Phase 2 events with agentName="reviewer"
-    - Yield progress events between phases
+    The Graph automatically passes each node's output to the next node.
+    A single _build_and_stream_graph() adapter translates Graph streaming
+    events into the existing SSE event format {type, data, agentName}.
     """
 
     def __init__(self) -> None:
         self._model_provider = ModelProvider()
-        self._single_agent = SingleAgentService()
+
+    async def _build_and_stream_graph(
+        self,
+        task: str,
+        agents: list[AgentNodeSpec],
+        resolved_model_id: str,
+        node_progress: dict[str, str],
+        result_nodes: list[str] | None = None,
+    ) -> AsyncIterator[dict]:
+        """Build an N-node linear graph and translate streaming events to SSE format.
+
+        Creates a linear chain of agents using GraphBuilder (agents[0] → agents[1] → ...),
+        then streams execution events, converting them to the SSE event contract:
+          - multiagent_node_start  → {type: "progress", agentName: node_id}
+          - multiagent_node_stream → {type: "text", agentName: node_id}
+          - After completion       → {type: "result", agentName: node_id} for each result_node
+
+        Args:
+            task: The user prompt to execute.
+            agents: Ordered list of agent specs defining the linear chain.
+            resolved_model_id: Bedrock model ID to use for all agents.
+            node_progress: Mapping of node_id → progress message string.
+            result_nodes: Node IDs to extract JSON results from. If None, no results extracted.
+
+        Yields:
+            SSE event dicts with keys: type, data, agentName.
+        """
+        # Lazy imports to avoid ImportError without AWS credentials
+        from strands import Agent
+        from strands.multiagent import GraphBuilder
+
+        # Create agents and build graph
+        builder = GraphBuilder()
+        for spec in agents:
+            agent = Agent(
+                model=self._model_provider.get_model(resolved_model_id),
+                system_prompt=spec.system_prompt,
+            )
+            builder.add_node(agent, node_id=spec.node_id)
+
+        # Create linear chain edges: agents[0] → agents[1] → agents[2] → ...
+        for i in range(len(agents) - 1):
+            builder.add_edge(agents[i].node_id, agents[i + 1].node_id)
+
+        builder.set_entry_point(agents[0].node_id)
+        graph = builder.build()
+
+        # Stream graph execution, translating events to SSE format
+        accumulated: dict[str, str] = {}
+
+        async for event in graph.stream_async(task):
+            etype = event.get("type")
+            node_id = event.get("node_id", "")
+
+            if etype == "multiagent_node_start":
+                accumulated[node_id] = ""
+                msg = node_progress.get(node_id)
+                if msg:
+                    yield {"type": "progress", "data": msg, "agentName": node_id}
+
+            elif etype == "multiagent_node_stream":
+                nested = event.get("event", {})
+                if "data" in nested:
+                    chunk = nested["data"]
+                    accumulated[node_id] = accumulated.get(node_id, "") + chunk
+                    yield {"type": "text", "data": chunk, "agentName": node_id}
+
+        # Graph completed — extract JSON results from specified nodes
+        if result_nodes:
+            for node_id in result_nodes:
+                node_text = accumulated.get(node_id, "")
+                parsed = SingleAgentService._extract_json_result(node_text)
+                yield {
+                    "type": "result",
+                    "data": json.dumps(parsed, ensure_ascii=False),
+                    "agentName": node_id,
+                }
 
     async def generate_messages_stream(
         self,
@@ -55,32 +143,22 @@ class MultiAgentService:
         """
         Stream multi-agent message generation events.
 
-        Phase 1: Generator agent creates initial messages.
-        Phase 2: Reviewer agent reviews and improves them.
+        Builds a Generator→Reviewer→Spam Checker graph and streams execution events.
+        Generator creates initial messages; Reviewer reviews and improves them;
+        Spam Checker analyzes for KISA compliance.
 
         Yields dicts with keys: type, data, agentName.
         Event types: "progress" → "text" → "result" | "error".
         """
         resolved_model_id = model_id or self._model_provider.get_default_model().model_id
 
-        # ── Phase 1: Generator ──────────────────────────────────────────────
         yield {
             "type": "progress",
             "data": "메시지를 생성하고 있습니다...",
             "agentName": "generator",
         }
 
-        generated_text = ""
         try:
-            # Lazy import to avoid ImportError without AWS credentials
-            from strands import Agent
-
-            model = self._model_provider.get_model(resolved_model_id)
-            generator_agent = Agent(
-                model=model,
-                system_prompt=GENERATOR_SYSTEM_PROMPT,
-            )
-
             prompt = build_option_prompt(
                 channel=channel,
                 purpose=purpose,
@@ -91,75 +169,26 @@ class MultiAgentService:
                 send_time=send_time,
             )
 
-            yield {
-                "type": "progress",
-                "data": "AI 에이전트가 메시지를 작성 중입니다...",
-                "agentName": "generator",
-            }
-
-            async for event in generator_agent.stream_async(prompt):
-                if "data" in event:
-                    chunk = event["data"]
-                    generated_text += chunk
-                    yield {
-                        "type": "text",
-                        "data": chunk,
-                        "agentName": "generator",
-                    }
-
-        except Exception as e:
-            logger.exception("Error in generator phase")
-            yield {
-                "type": "error",
-                "data": str(e),
-                "agentName": "generator",
-            }
-            return
-
-        # ── Phase 2: Reviewer ───────────────────────────────────────────────
-        yield {
-            "type": "progress",
-            "data": "메시지를 검토하고 있습니다...",
-            "agentName": "reviewer",
-        }
-
-        try:
-            from strands import Agent
-
-            model = self._model_provider.get_model(resolved_model_id)
-            reviewer_agent = Agent(
-                model=model,
-                system_prompt=REVIEWER_SYSTEM_PROMPT,
-            )
-
-            review_prompt = build_review_prompt(generated_text)
-            reviewed_text = ""
-
-            async for event in reviewer_agent.stream_async(review_prompt):
-                if "data" in event:
-                    chunk = event["data"]
-                    reviewed_text += chunk
-                    yield {
-                        "type": "text",
-                        "data": chunk,
-                        "agentName": "reviewer",
-                    }
-
-            # Parse and emit final result from reviewer output
-            parsed = SingleAgentService._extract_json_result(reviewed_text)
-            yield {
-                "type": "result",
-                "data": json.dumps(parsed, ensure_ascii=False),
-                "agentName": "reviewer",
-            }
+            async for event in self._build_and_stream_graph(
+                task=prompt,
+                agents=[
+                    AgentNodeSpec("generator", GENERATOR_SYSTEM_PROMPT),
+                    AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
+                    AgentNodeSpec("spam_checker", SPAM_CHECKER_SYSTEM_PROMPT),
+                ],
+                resolved_model_id=resolved_model_id,
+                node_progress={
+                    "generator": "AI 에이전트가 메시지를 작성 중입니다...",
+                    "reviewer": "메시지를 검토하고 있습니다...",
+                    "spam_checker": "스팸 규정을 분석하고 있습니다...",
+                },
+                result_nodes=["reviewer", "spam_checker"],
+            ):
+                yield event
 
         except Exception as e:
-            logger.exception("Error in reviewer phase")
-            yield {
-                "type": "error",
-                "data": str(e),
-                "agentName": "reviewer",
-            }
+            logger.exception("Error in multi-agent graph execution")
+            yield {"type": "error", "data": str(e), "agentName": "generator"}
 
     async def chat_message_stream(
         self,
@@ -170,93 +199,52 @@ class MultiAgentService:
         """
         Stream multi-agent chat responses.
 
-        Phase 1: Generator agent produces initial response.
-        Phase 2: Reviewer agent reviews and enhances it.
+        Builds a Generator→Reviewer→Spam Checker graph and streams execution events.
+        Generator produces initial response; Reviewer reviews and enhances it;
+        Spam Checker analyzes for KISA compliance.
 
         Yields dicts with keys: type, data, agentName.
-        Event types: "text" | "error".
+        Event types: "progress" → "text" → "result" | "error".
         """
         resolved_model_id = model_id or self._model_provider.get_default_model().model_id
 
-        # ── Phase 1: Generator ──────────────────────────────────────────────
         yield {
             "type": "progress",
             "data": "응답을 생성하고 있습니다...",
             "agentName": "generator",
         }
 
-        generated_text = ""
         try:
-            from strands import Agent
-
-            model = self._model_provider.get_model(resolved_model_id)
-
             system_prompt = build_chat_system_prompt()
-            history_context = ""
+
+            prompt = message
             if conversation_history:
+                history_context = ""
                 for msg in conversation_history:
                     role = msg.get("role", "user")
                     content = msg.get("content", "")
                     history_context += f"[{role}]: {content}\n"
-
-            generator_agent = Agent(model=model, system_prompt=system_prompt)
-
-            prompt = message
-            if history_context:
                 prompt = (
                     f"이전 대화 기록:\n{history_context}\n"
                     f"현재 사용자 메시지: {message}"
                 )
 
-            async for event in generator_agent.stream_async(prompt):
-                if "data" in event:
-                    chunk = event["data"]
-                    generated_text += chunk
-                    yield {
-                        "type": "text",
-                        "data": chunk,
-                        "agentName": "generator",
-                    }
+            async for event in self._build_and_stream_graph(
+                task=prompt,
+                agents=[
+                    AgentNodeSpec("generator", system_prompt),
+                    AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
+                    AgentNodeSpec("spam_checker", SPAM_CHECKER_SYSTEM_PROMPT),
+                ],
+                resolved_model_id=resolved_model_id,
+                node_progress={
+                    "reviewer": "응답을 검토하고 있습니다...",
+                    "spam_checker": "스팸 규정을 분석하고 있습니다...",
+                },
+                result_nodes=["spam_checker"],
+            ):
+                yield event
 
         except Exception as e:
-            logger.exception("Error in chat generator phase")
-            yield {
-                "type": "error",
-                "data": str(e),
-                "agentName": "generator",
-            }
-            return
-
-        # ── Phase 2: Reviewer ───────────────────────────────────────────────
-        yield {
-            "type": "progress",
-            "data": "응답을 검토하고 있습니다...",
-            "agentName": "reviewer",
-        }
-
-        try:
-            from strands import Agent
-
-            model = self._model_provider.get_model(resolved_model_id)
-            reviewer_agent = Agent(
-                model=model,
-                system_prompt=REVIEWER_SYSTEM_PROMPT,
-            )
-
-            review_prompt = build_chat_review_prompt(generated_text, message)
-
-            async for event in reviewer_agent.stream_async(review_prompt):
-                if "data" in event:
-                    yield {
-                        "type": "text",
-                        "data": event["data"],
-                        "agentName": "reviewer",
-                    }
-
-        except Exception as e:
-            logger.exception("Error in chat reviewer phase")
-            yield {
-                "type": "error",
-                "data": str(e),
-                "agentName": "reviewer",
-            }
+            logger.exception("Error in multi-agent chat graph execution")
+            yield {"type": "error", "data": str(e), "agentName": "generator"}

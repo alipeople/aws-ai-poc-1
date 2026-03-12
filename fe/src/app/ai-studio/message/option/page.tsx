@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import type { MessageVariant, SpamCheck, PersonalizationVar, FatigueAnalysis } from '@/types/api';
+import type { MessageVariant, SpamCheck, PersonalizationVar, FatigueAnalysis, SpamCheckerResult } from '@/types/api';
 import { useSSE } from '@/hooks/useSSE';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/services/api';
@@ -18,6 +18,7 @@ import { ResultCards } from '@/components/ai-message/option/ResultCards';
 import { SpamScore } from '@/components/ai-message/option/SpamScore';
 import { PersonalizationVars } from '@/components/ai-message/option/PersonalizationVars';
 import { FatigueAlert } from '@/components/ai-message/option/FatigueAlert';
+import { SpamCheckerAnalysis } from '@/components/ai-message/option/SpamCheckerAnalysis';
 import styles from './page.module.css';
 
 export default function OptionPage() {
@@ -46,6 +47,7 @@ export default function OptionPage() {
   const [spamScore, setSpamScore] = useState<{ score: number; checks: SpamCheck[] } | null>(null);
   const [personalizationVars, setPersonalizationVars] = useState<PersonalizationVar[]>([]);
   const [fatigueData, setFatigueData] = useState<FatigueAnalysis | null>(null);
+  const [spamCheckerData, setSpamCheckerData] = useState<SpamCheckerResult | null>(null);
 
   const accumulatedTextRef = useRef('');
   const { streamSSE } = useSSE();
@@ -70,6 +72,7 @@ export default function OptionPage() {
     setIsLoading(true);
     setShowResults(false);
     setError(null);
+    setSpamCheckerData(null);
     accumulatedTextRef.current = '';
     setLoadingStep('메시지를 생성하고 있습니다...');
 
@@ -96,7 +99,9 @@ export default function OptionPage() {
           } else if (event.type === 'result' && typeof event.data === 'string') {
             try {
               const parsed = JSON.parse(event.data);
-              if (parsed.variants && Array.isArray(parsed.variants)) {
+              if (event.agentName === 'spam_checker') {
+                setSpamCheckerData(parsed as SpamCheckerResult);
+              } else if (parsed.variants && Array.isArray(parsed.variants)) {
                 setVariants(parsed.variants as MessageVariant[]);
               }
             } catch {
@@ -189,11 +194,14 @@ export default function OptionPage() {
               variants={variants}
               selectedIndex={selectedVariantIndex}
               onSelect={setSelectedVariantIndex}
-              onReset={() => { setShowResults(false); setVariants([]); }}
+              onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); }}
               onRegenerate={handleGenerate}
             />
             {spamScore && (
               <SpamScore score={spamScore.score} checks={spamScore.checks} />
+            )}
+            {spamCheckerData && (
+              <SpamCheckerAnalysis data={spamCheckerData} />
             )}
             {personalizationVars.length > 0 && (
               <PersonalizationVars

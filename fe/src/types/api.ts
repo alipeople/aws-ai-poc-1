@@ -67,6 +67,41 @@ export interface FatigueAnalysis {
   recommendation: string;
 }
 
+// ===== Spam Checker (KISA Analysis) =====
+export type SpamClassification = 'HAM' | 'ILLEGAL_SPAM' | 'NORMAL_SPAM' | 'AD_VIOLATION';
+export type SpamRiskLevel = 'safe' | 'warning' | 'danger';
+
+export interface SpamRiskFactor {
+  keyword: string;
+  category: string;
+  severity: 'high' | 'medium' | 'low';
+}
+
+export interface SpamAdCompliance {
+  has_ad_label: boolean;
+  has_opt_out_number: boolean;
+}
+
+export interface SpamCheckerVariantResult {
+  label: string;
+  classification: SpamClassification;
+  risk_level: SpamRiskLevel;
+  risk_factors: SpamRiskFactor[];
+  ad_compliance: SpamAdCompliance;
+  suggestions: string[];
+}
+
+export interface SpamCheckerResult {
+  results?: SpamCheckerVariantResult[];
+  classification?: SpamClassification;
+  risk_level?: SpamRiskLevel;
+  risk_factors?: SpamRiskFactor[];
+  ad_compliance?: SpamAdCompliance;
+  suggestions?: string[];
+  overall_classification?: SpamClassification;
+  overall_risk_level?: SpamRiskLevel;
+}
+
 export interface MessageGenerateResponse {
   variants: MessageVariant[];
   spamScore: SpamScore;
@@ -91,7 +126,7 @@ export interface ChatRequest {
 export interface StreamEvent {
   type: 'text' | 'thinking' | 'tool_use' | 'progress' | 'result' | 'error';
   data: string | MessageGenerateResponse;
-  agentName?: string; // 'generator' | 'reviewer' | 'assistant'
+  agentName?: string; // 'generator' | 'reviewer' | 'spam_checker' | 'assistant'
 }
 
 // ===== URL Analysis =====

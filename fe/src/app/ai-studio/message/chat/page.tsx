@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import type { ChatMessage } from '@/types/api';
+import type { ChatMessage, SpamCheckerResult } from '@/types/api';
 import { useSSE } from '@/hooks/useSSE';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/services/api';
@@ -9,6 +9,7 @@ import { ChatMessages } from '@/components/ai-message/chat/ChatMessages';
 import { QuickActions } from '@/components/ai-message/chat/QuickActions';
 import { ChatInput } from '@/components/ai-message/chat/ChatInput';
 import styles from './page.module.css';
+import { SpamCheckerAnalysis } from '@/components/ai-message/option/SpamCheckerAnalysis';
 
 const INITIAL_MESSAGE: ChatMessage = {
   role: 'assistant',
@@ -19,6 +20,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [spamCheckerData, setSpamCheckerData] = useState<SpamCheckerResult | null>(null);
 
   const streamingRef = useRef('');
   const { streamSSE } = useSSE();
@@ -32,6 +34,7 @@ export default function ChatPage() {
       setIsStreaming(true);
       setStreamingContent('');
       streamingRef.current = '';
+      setSpamCheckerData(null);
 
       await streamSSE(
         api.chatMessageUrl(),
@@ -46,6 +49,12 @@ export default function ChatPage() {
             if (event.type === 'text' && typeof event.data === 'string') {
               streamingRef.current += event.data;
               setStreamingContent(streamingRef.current);
+            } else if (event.type === 'result' && typeof event.data === 'string' && event.agentName === 'spam_checker') {
+              try {
+                setSpamCheckerData(JSON.parse(event.data) as SpamCheckerResult);
+              } catch {
+                // Spam checker result parsing failure — non-critical
+              }
             }
           },
           onComplete: () => {
@@ -91,6 +100,11 @@ export default function ChatPage() {
           messages={messages}
           streamingContent={streamingContent}
         />
+        {spamCheckerData && (
+          <div style={{ padding: '0 16px 16px' }}>
+            <SpamCheckerAnalysis data={spamCheckerData} />
+          </div>
+        )}
         <div className={styles.inputArea}>
           <QuickActions onAction={handleQuickAction} />
           <ChatInput onSend={handleSend} isStreaming={isStreaming} />
