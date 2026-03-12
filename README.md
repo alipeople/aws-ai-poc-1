@@ -14,56 +14,48 @@ HTML 프로토타입 기반의 AI 메시지 작성 POC. 옵션형(6단계 위자
 
 ### 전체 시스템 구성
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        사용자 (브라우저)                             │
-│                                                                     │
-│   옵션형 위자드 (6단계)          대화형 AI 챗          URL 분석      │
-│   채널→목적→톤→소재→시즌→대상   자연어 대화           상품 URL 입력  │
-└───────────────┬─────────────────────┬──────────────────┬────────────┘
-                │ SSE Stream          │ SSE Stream       │ REST
-                ▼                     ▼                  ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Frontend (Next.js 16)                            │
-│                                                                     │
-│   App Router ─── useSSE Hook ─── fetch + ReadableStream             │
-│       │              │                    │                         │
-│   SettingsContext    │              API Service Layer                │
-│   (에이전트모드,     │              (api.ts)                        │
-│    모델, 테마)       │                    │                         │
-│                      │                    │                         │
-│   5개 테마 (CSS Variables + data-theme)   │                         │
-└──────────────────────┼────────────────────┼─────────────────────────┘
-                       │                    │
-                       │   HTTP (localhost:50001)                     
-                       ▼                    ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    Backend (FastAPI)                                │
-│                                                                     │
-│   routes/                                                           │
-│   ├── messages.py ──── SSE EventSourceResponse                      │
-│   ├── analysis.py ──── URL 분석 (WebPageFetcher + LLM)              │
-│   ├── health.py        models.py        mock_data.py                │
-│   │                                                                 │
-│   services/                                                         │
-│   ├── SingleAgentService ─── 싱글 에이전트 모드                     │
-│   ├── MultiAgentService ──── 멀티 에이전트 모드                     │
-│   ├── WebPageFetcher ──────── httpx + HTML 파싱                     │
-│   └── ModelProvider ───────── Bedrock 모델 관리                     │
-│                                                                     │
-│   prompts/                                                          │
-│   ├── message_generator.py ── 메시지 생성 프롬프트                  │
-│   └── message_reviewer.py ─── 메시지 검토 프롬프트                  │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-                                │  AWS Strands Agents SDK
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                    AWS Bedrock                                      │
-│                                                                     │
-│   Claude Sonnet 4  │  Claude Haiku 4  │  Nova Pro  │  Nova Lite     │
-│   (추천, 고성능)   │  (빠르고 경제적) │  (AWS 네이티브)             │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Browser["사용자 브라우저"]
+        direction LR
+        WIZARD["옵션형 위자드<br>(6단계 설정)"]
+        CHAT["대화형 AI 챗"]
+        URLINPUT["URL 분석"]
+    end
+
+    WIZARD -->|SSE Stream| HOOK
+    CHAT -->|SSE Stream| HOOK
+    URLINPUT -->|REST| APISVC
+
+    subgraph FE["Frontend — Next.js 16 · port 50000"]
+        HOOK["useSSE Hook<br>fetch + ReadableStream"]
+        APISVC["API Service Layer<br>api.ts"]
+        CTX["SettingsContext<br>에이전트모드 · 모델 · 테마"]
+        THEME["5개 테마 시스템<br>CSS Variables + data-theme"]
+        HOOK --> APISVC
+    end
+
+    APISVC -->|HTTP| MSGRT
+    APISVC -->|HTTP| ANART
+
+    subgraph BE["Backend — FastAPI · port 50001"]
+        MSGRT["messages.py<br>SSE EventSourceResponse"]
+        ANART["analysis.py<br>URL 분석 엔드포인트"]
+
+        MSGRT --> SAS["SingleAgentService"]
+        MSGRT --> MAS["MultiAgentService<br>Generator → Reviewer"]
+        ANART --> WPF["WebPageFetcher<br>httpx + HTML Parser"]
+
+        SAS --> MP["ModelProvider"]
+        MAS --> MP
+        WPF --> MP
+    end
+
+    MP -->|Strands Agents SDK| LLM
+
+    subgraph AWS["AWS Bedrock"]
+        LLM["Claude Sonnet 4 · Claude Haiku 4<br>Amazon Nova Pro · Amazon Nova Lite"]
+    end
 ```
 
 ### 에이전트 동작 모드
@@ -75,31 +67,27 @@ HTML 프로토타입 기반의 AI 메시지 작성 POC. 옵션형(6단계 위자
 
 하나의 에이전트가 메시지 생성을 직접 수행합니다.
 
-```
-                    사용자 입력
-                        │
-                        │  채널, 목적, 톤앤매너, 소재, 시즌, 대상
-                        ▼
-    ┌───────────────────────────────────────┐
-    │        Generator Agent                │
-    │        (메시지 생성 에이전트)           │
-    │                                       │
-    │  시스템 프롬프트:                      │
-    │  ├─ 한국어 마케팅 메시지 작성 전문가   │
-    │  ├─ 채널별 글자 수 제한 준수            │
-    │  ├─ 스팸 필터 회피 표현                 │
-    │  └─ JSON 형식 응답                     │
-    │                                       │
-    │  Bedrock LLM (Claude/Nova)             │
-    └───────────────────┬───────────────────┘
-                        │
-                        │  SSE 스트리밍 (실시간 텍스트 전송)
-                        ▼
-              ┌─────────────────┐
-              │  A/B/C 3종      │
-              │  마케팅 메시지   │
-              │  (JSON 결과)    │
-              └─────────────────┘
+```mermaid
+graph TD
+    INPUT["사용자 입력<br>채널 · 목적 · 톤앤매너 · 소재 · 시즌 · 대상"]
+
+    INPUT --> GEN
+
+    GEN["Generator Agent<br>메시지 생성 에이전트"]
+
+    subgraph PROMPT["시스템 프롬프트"]
+        direction LR
+        P1["한국어 마케팅 메시지 작성 전문가"]
+        P2["채널별 글자 수 제한 준수"]
+        P3["스팸 필터 회피 표현"]
+        P4["JSON 형식 응답"]
+    end
+
+    GEN --- PROMPT
+    GEN -->|SSE 스트리밍| OUTPUT["A/B/C 3종 마케팅 메시지<br>JSON 결과"]
+
+    style GEN fill:#4A90D9,stroke:#2D6CB4,color:#fff
+    style OUTPUT fill:#7EC87E,stroke:#5AA55A,color:#fff
 ```
 
 #### 멀티 에이전트 모드 (Multi Agent — Sequential Pipeline)
@@ -107,131 +95,105 @@ HTML 프로토타입 기반의 AI 메시지 작성 POC. 옵션형(6단계 위자
 두 에이전트가 순차적으로 협력하여 품질을 높입니다.
 컨셉 다이어그램의 Graph 패턴을 **Generator → Reviewer** 파이프라인으로 구현합니다.
 
-```
-                    사용자 입력
-                        │
-                        │  "우리 행사를 알리는 메시지 써줘"
-                        │  { channel, purpose, tone, source, season, target }
-                        ▼
-┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-│             멀티 에이전트 파이프라인 (Sequential)                    │
-│                                                                     │
-│   ┌───────────────────────────────────────┐                         │
-│   │  Phase 1: Generator Agent             │                         │
-│   │  (초안 작성 에이전트)                  │                         │
-│   │                                       │                         │
-│   │  역할:                                │                         │
-│   │  ├─ 마케팅 메시지 초안 생성            │                         │
-│   │  ├─ A/B/C 3종 변형 작성               │                         │
-│   │  ├─ 채널 규격에 맞는 글자 수 준수      │                         │
-│   │  └─ CTA(행동유도) 포함                │                         │
-│   │                                       │   SSE: agentName=       │
-│   │  프롬프트: build_option_prompt()       │   "generator"           │
-│   │  모델: Bedrock (Claude/Nova)           │                         │
-│   └───────────────────┬───────────────────┘                         │
-│                       │                                             │
-│                       │  생성된 메시지 텍스트 (중간 결과)            │
-│                       ▼                                             │
-│   ┌───────────────────────────────────────┐                         │
-│   │  Phase 2: Reviewer Agent              │                         │
-│   │  (품질 검토 에이전트)                  │                         │
-│   │                                       │                         │
-│   │  역할:                                │                         │
-│   │  ├─ 문법 및 맞춤법 검토               │                         │
-│   │  ├─ 마케팅 효과성 평가                │                         │
-│   │  ├─ 스팸 위험 요소 탐지               │                         │
-│   │  └─ 개선된 최종 버전 작성             │                         │
-│   │                                       │   SSE: agentName=       │
-│   │  프롬프트: build_review_prompt()       │   "reviewer"            │
-│   │  모델: Bedrock (Claude/Nova)           │                         │
-│   └───────────────────┬───────────────────┘                         │
-│                       │                                             │
-└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┼ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-                        │
-                        │  SSE 스트리밍 (실시간 텍스트 전송)
-                        ▼
-              ┌─────────────────┐
-              │  검토 완료된    │
-              │  A/B/C 3종      │
-              │  마케팅 메시지   │
-              │  (JSON 결과)    │
-              └─────────────────┘
+```mermaid
+graph TD
+    INPUT["사용자 입력<br>채널 · 목적 · 톤앤매너 · 소재 · 시즌 · 대상"]
+
+    INPUT --> GEN
+
+    subgraph PIPELINE["멀티 에이전트 파이프라인 — Sequential"]
+        GEN["Phase 1: Generator Agent<br>초안 작성 에이전트"]
+        GEN_DETAIL["마케팅 메시지 초안 생성<br>A/B/C 3종 변형 작성<br>채널 규격 글자 수 준수<br>CTA 행동유도 포함"]
+        GEN --- GEN_DETAIL
+
+        GEN -->|생성된 메시지 텍스트<br>중간 결과| REV
+
+        REV["Phase 2: Reviewer Agent<br>품질 검토 에이전트"]
+        REV_DETAIL["문법 및 맞춤법 검토<br>마케팅 효과성 평가<br>스팸 위험 요소 탐지<br>개선된 최종 버전 작성"]
+        REV --- REV_DETAIL
+    end
+
+    REV -->|SSE 스트리밍| OUTPUT["검토 완료된 A/B/C 3종<br>마케팅 메시지 — JSON 결과"]
+
+    style GEN fill:#4A90D9,stroke:#2D6CB4,color:#fff
+    style REV fill:#F5A623,stroke:#D4891A,color:#fff
+    style OUTPUT fill:#7EC87E,stroke:#5AA55A,color:#fff
+    style GEN_DETAIL fill:#E8F0FE,stroke:#4A90D9,color:#333
+    style REV_DETAIL fill:#FFF3E0,stroke:#F5A623,color:#333
 ```
 
 #### URL 분석 파이프라인
 
 상품 URL을 입력하면 웹 페이지에서 상품 정보를 자동 추출합니다.
 
-```
-            상품 URL 입력
-            (예: https://www.yes24.com/Product/...)
-                    │
-                    ▼
-    ┌───────────────────────────────────┐
-    │  Stage 1: WebPageFetcher          │
-    │  (웹 페이지 수집)                 │
-    │                                   │
-    │  httpx (비동기 HTTP 클라이언트)    │
-    │  ├─ 브라우저 헤더로 요청           │
-    │  ├─ 리다이렉트 자동 추적           │
-    │  └─ 15초 타임아웃                  │
-    │                                   │
-    │  HTML Parser (Python stdlib)       │
-    │  ├─ <title> 추출                  │
-    │  ├─ OG 태그 (og:title, og:price)  │
-    │  ├─ JSON-LD 구조화 데이터          │
-    │  ├─ <meta> description, keywords   │
-    │  └─ 본문 텍스트 (8000자 제한)      │
-    └──────────────────┬────────────────┘
-                       │
-                       │  추출된 텍스트 데이터
-                       │  (페이지 수집 실패 시 URL 문자열로 폴백)
-                       ▼
-    ┌───────────────────────────────────┐
-    │  Stage 2: Analysis Agent          │
-    │  (상품 정보 구조화 에이전트)       │
-    │                                   │
-    │  시스템 프롬프트:                  │
-    │  ├─ 텍스트 기반 상품 정보 추출     │
-    │  ├─ 추측 금지, 데이터 기반만       │
-    │  └─ JSON 형식 응답                 │
-    │                                   │
-    │  Bedrock LLM (Claude/Nova)         │
-    └──────────────────┬────────────────┘
-                       │
-                       ▼
-              ┌─────────────────┐
-              │  구조화된       │
-              │  상품 정보      │
-              │                 │
-              │  ├─ 상품명     │
-              │  ├─ 가격       │
-              │  ├─ 할인율     │
-              │  ├─ 카테고리   │
-              │  └─ 특징       │
-              └─────────────────┘
+```mermaid
+graph TD
+    INPUT["상품 URL 입력<br>예: https://www.yes24.com/Product/..."]
+
+    INPUT --> FETCH
+
+    FETCH["Stage 1: WebPageFetcher<br>웹 페이지 수집"]
+
+    subgraph FETCH_DETAIL["httpx + HTML Parser"]
+        direction LR
+        F1["브라우저 헤더로 HTTP 요청"]
+        F2["title · OG 태그 · JSON-LD 추출"]
+        F3["본문 텍스트 — 8000자 제한"]
+    end
+
+    FETCH --- FETCH_DETAIL
+    FETCH -->|추출된 텍스트 데이터<br>수집 실패 시 URL 문자열로 폴백| AGENT
+
+    AGENT["Stage 2: Analysis Agent<br>상품 정보 구조화 에이전트"]
+
+    subgraph AGENT_DETAIL["시스템 프롬프트"]
+        direction LR
+        A1["텍스트 기반 상품 정보 추출"]
+        A2["추측 금지 — 데이터 기반만"]
+        A3["JSON 형식 응답"]
+    end
+
+    AGENT --- AGENT_DETAIL
+    AGENT --> OUTPUT
+
+    OUTPUT["구조화된 상품 정보<br>상품명 · 가격 · 할인율 · 카테고리 · 특징"]
+
+    style FETCH fill:#4A90D9,stroke:#2D6CB4,color:#fff
+    style AGENT fill:#F5A623,stroke:#D4891A,color:#fff
+    style OUTPUT fill:#7EC87E,stroke:#5AA55A,color:#fff
 ```
 
 ### SSE 스트리밍 프로토콜
 
 모든 AI 응답은 **Server-Sent Events (SSE)**로 실시간 스트리밍됩니다.
 
-```
-Frontend (useSSE Hook)                Backend (FastAPI)
-       │                                    │
-       │── POST /api/messages/generate ────▶│
-       │   { channel, purpose, tone, ... }  │
-       │                                    │
-       │◀── event: {type:"progress"} ────────│  "메시지를 생성하고 있습니다..."
-       │◀── event: {type:"text"} ────────────│  실시간 텍스트 청크 (반복)
-       │◀── event: {type:"text"} ────────────│  ...
-       │                                    │
-       │    [멀티 에이전트 모드일 때]         │
-       │◀── event: {type:"progress"} ────────│  "메시지를 검토하고 있습니다..."
-       │◀── event: {type:"text"} ────────────│  리뷰어 텍스트 청크 (반복)
-       │                                    │
-       │◀── event: {type:"result"} ──────────│  최종 JSON 결과
-       │                                    │
+```mermaid
+sequenceDiagram
+    participant FE as Frontend (useSSE)
+    participant BE as Backend (FastAPI)
+    participant G as Generator Agent
+    participant R as Reviewer Agent
+
+    FE->>BE: POST /api/messages/generate
+    BE-->>FE: event: progress — 메시지를 생성하고 있습니다
+
+    BE->>G: 프롬프트 전달
+    loop 실시간 텍스트 청크
+        G-->>BE: 텍스트 조각
+        BE-->>FE: event: text (agentName: generator)
+    end
+
+    rect rgb(255, 243, 224)
+        Note over BE,R: 멀티 에이전트 모드일 때만 실행
+        BE-->>FE: event: progress — 메시지를 검토하고 있습니다
+        BE->>R: 생성된 텍스트 전달
+        loop 검토된 텍스트 청크
+            R-->>BE: 개선된 텍스트 조각
+            BE-->>FE: event: text (agentName: reviewer)
+        end
+    end
+
+    BE-->>FE: event: result — 최종 JSON 결과
 ```
 
 | 이벤트 타입 | 설명 | agentName |
