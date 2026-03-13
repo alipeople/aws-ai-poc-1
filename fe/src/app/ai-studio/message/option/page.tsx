@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
-import type { MessageVariant, PersonalizationVar, FatigueAnalysis, SpamCheckerResult } from '@/types/api';
+import type { MessageVariant, SpamCheckerResult } from '@/types/api';
 import { useSSE } from '@/hooks/useSSE';
 import { useSettings } from '@/context/SettingsContext';
 import { api } from '@/services/api';
@@ -10,14 +10,12 @@ import { PurposeSelector } from '@/components/ai-message/option/PurposeSelector'
 import { ToneSelector } from '@/components/ai-message/option/ToneSelector';
 import { SourceInput } from '@/components/ai-message/option/SourceInput';
 import { SeasonSelector } from '@/components/ai-message/option/SeasonSelector';
-import { TargetSelector } from '@/components/ai-message/option/TargetSelector';
 import { SummaryPanel } from '@/components/ai-message/option/SummaryPanel';
 import { GenerateButton } from '@/components/ai-message/option/GenerateButton';
 import { LoadingAnimation } from '@/components/ai-message/option/LoadingAnimation';
 import { ResultCards } from '@/components/ai-message/option/ResultCards';
-import { PersonalizationVars } from '@/components/ai-message/option/PersonalizationVars';
-import { FatigueAlert } from '@/components/ai-message/option/FatigueAlert';
 import { SpamCheckerAnalysis } from '@/components/ai-message/option/SpamCheckerAnalysis';
+import { ImageUploader } from '@/components/ai-message/option/ImageUploader';
 import styles from './page.module.css';
 
 export default function OptionPage() {
@@ -31,8 +29,7 @@ export default function OptionPage() {
   const [sourceUrl, setSourceUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [season, setSeason] = useState('');
-  const [target, setTarget] = useState('');
-  const [sendTime, setSendTime] = useState('');
+  const [mmsImages, setMmsImages] = useState<string[]>([]);
 
   // Generation state
   const [isLoading, setIsLoading] = useState(false);
@@ -43,47 +40,58 @@ export default function OptionPage() {
   // Result state
   const [variants, setVariants] = useState<MessageVariant[]>([]);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
-  const [personalizationVars, setPersonalizationVars] = useState<PersonalizationVar[]>([]);
-  const [fatigueData, setFatigueData] = useState<FatigueAnalysis | null>(null);
   const [spamCheckerData, setSpamCheckerData] = useState<SpamCheckerResult | null>(null);
+  const [detectedPurpose, setDetectedPurpose] = useState<string | null>(null);
+  const [detectedChannel, setDetectedChannel] = useState<string | null>(null);
+  const [channelReason, setChannelReason] = useState<string | null>(null);
 
   const accumulatedTextRef = useRef('');
+  const resultAreaRef = useRef<HTMLDivElement>(null);
   const { streamSSE } = useSSE();
-  const { agentMode, modelId } = useSettings();
+  const { agentMode, modelId, spamCheckEnabled, purposeSelectorEnabled } = useSettings();
 
-  const fetchMockData = useCallback(async () => {
-    try {
-      const [vars, fatigue] = await Promise.all([
-        api.mockData.getPersonalizationVars(),
-        api.mockData.getFatigueAnalysis(target || '전체'),
-      ]);
-      setPersonalizationVars(vars as PersonalizationVar[]);
-      setFatigueData(fatigue as unknown as FatigueAnalysis);
-    } catch {
-      // Mock data failure is non-critical
+
+  const canGenerate = source.trim().length > 0;
+
+  // Spam block: check selected variant's classification (per-variant) or overall
+  const isSpamBlocked = (() => {
+    if (!spamCheckerData) return false;
+    const variantResults = spamCheckerData.results;
+    if (variantResults && variantResults.length > 0) {
+      const selected = variantResults[selectedVariantIndex];
+      return selected ? selected.classification !== 'HAM' : false;
     }
-  }, [target]);
+    const classification = spamCheckerData.overall_classification ?? spamCheckerData.classification;
+    return classification ? classification !== 'HAM' : false;
+  })();
 
   const handleGenerate = useCallback(async () => {
+    if (!source.trim()) {
+      setError('소재/상품 정보를 입력해주세요.');
+      return;
+    }
     setIsLoading(true);
     setShowResults(false);
     setError(null);
     setSpamCheckerData(null);
+    setDetectedPurpose(null);
+    setDetectedChannel(null);
+    setChannelReason(null);
     accumulatedTextRef.current = '';
     setLoadingStep('메시지를 생성하고 있습니다...');
+    setTimeout(() => resultAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
     await streamSSE(
       api.generateMessagesUrl(),
       api.buildGenerateBody({
-        channel: (channel || 'SMS') as Parameters<typeof api.buildGenerateBody>[0]['channel'],
-        purpose: (purpose || '프로모션') as Parameters<typeof api.buildGenerateBody>[0]['purpose'],
+        channel: channel as Parameters<typeof api.buildGenerateBody>[0]['channel'],
+        purpose: (purposeSelectorEnabled ? (purpose || '프로모션') : '') as Parameters<typeof api.buildGenerateBody>[0]['purpose'],
         tone: (tone || '친근체') as Parameters<typeof api.buildGenerateBody>[0]['tone'],
-        source: source || '봄맞이 할인',
+        source: source.trim(),
         sourceType: sourceType,
         season,
-        target,
-        sendTime,
         agentMode,
+        spamCheckEnabled,
         modelId,
       }),
       {
@@ -99,6 +107,15 @@ export default function OptionPage() {
                 setSpamCheckerData(parsed as SpamCheckerResult);
               } else if (parsed.variants && Array.isArray(parsed.variants)) {
                 setVariants(parsed.variants as MessageVariant[]);
+                if (parsed.detectedPurpose) {
+                  setDetectedPurpose(parsed.detectedPurpose as string);
+                }
+                if (parsed.detectedChannel) {
+                  setDetectedChannel(parsed.detectedChannel as string);
+                }
+                if (parsed.channelReason) {
+                  setChannelReason(parsed.channelReason as string);
+                }
               }
             } catch {
               // Result parsing failure — will use mock variants
@@ -110,7 +127,6 @@ export default function OptionPage() {
         onComplete: () => {
           setIsLoading(false);
           setShowResults(true);
-          void fetchMockData();
         },
         onError: (err) => {
           setIsLoading(false);
@@ -118,7 +134,7 @@ export default function OptionPage() {
         },
       }
     );
-  }, [channel, purpose, tone, source, sourceType, season, target, sendTime, agentMode, modelId, streamSSE, fetchMockData]);
+  }, [channel, purpose, tone, source, sourceType, season, agentMode, spamCheckEnabled, modelId, streamSSE]);
 
   const handleUrlAnalyze = useCallback(async () => {
     if (!sourceUrl) return;
@@ -146,11 +162,17 @@ export default function OptionPage() {
   const summarySource = sourceType === 'url' ? sourceUrl : source;
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.page}>
+      <div className={styles.pageHeader}>
+        <h1>✍️ 메시지 작성하기</h1>
+        <p>어떤 메시지를 보낼지 AI와 함께 만들어보세요</p>
+      </div>
+      <div className={styles.layout}>
       {/* Left column: wizard steps + generate button */}
       <div className={styles.steps}>
         <ChannelSelector value={channel} onChange={setChannel} />
-        <PurposeSelector value={purpose} onChange={setPurpose} />
+        {channel === 'mms' && <ImageUploader images={mmsImages} onChange={setMmsImages} />}
+        {purposeSelectorEnabled && <PurposeSelector value={purpose} onChange={setPurpose} />}
         <ToneSelector
           value={tone}
           onChange={setTone}
@@ -167,16 +189,10 @@ export default function OptionPage() {
           onAnalyzeUrl={handleUrlAnalyze}
           isAnalyzing={isAnalyzing}
         />
-        <SeasonSelector value={season} onChange={setSeason} />
-        <TargetSelector
-          target={target}
-          onTargetChange={setTarget}
-          sendTime={sendTime}
-          onSendTimeChange={setSendTime}
-        />
 
-        <GenerateButton onClick={handleGenerate} isLoading={isLoading} />
-        <LoadingAnimation isVisible={isLoading} />
+        <div ref={resultAreaRef} />
+        <GenerateButton onClick={handleGenerate} isLoading={isLoading} disabled={!canGenerate} />
+        <LoadingAnimation isVisible={isLoading} agentMode={agentMode} spamCheckEnabled={spamCheckEnabled} />
 
         {error && (
           <div style={{ padding: '12px 16px', background: 'var(--accO)', borderRadius: 'var(--radius)', color: 'var(--tx)', fontSize: 14 }}>
@@ -186,28 +202,35 @@ export default function OptionPage() {
 
         {showResults && (
           <>
+            {(detectedChannel || detectedPurpose) && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {detectedChannel && (
+                  <div style={{ padding: '10px 16px', background: 'color-mix(in srgb, var(--ok) 8%, transparent)', borderRadius: 'var(--radius)', fontSize: 13, color: 'var(--tx2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 16 }}>📡</span>
+                    <span>AI 추천 채널: <strong style={{ color: 'var(--tx)' }}>{detectedChannel}</strong></span>
+                    {channelReason && <span style={{ fontSize: 12, color: 'var(--tx3)' }}>— {channelReason}</span>}
+                  </div>
+                )}
+                {detectedPurpose && (
+                  <div style={{ padding: '10px 16px', background: 'color-mix(in srgb, var(--pri) 8%, transparent)', borderRadius: 'var(--radius)', fontSize: 13, color: 'var(--tx2)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 16 }}>🎯</span>
+                    <span>AI 판단 목적: <strong style={{ color: 'var(--tx)' }}>{detectedPurpose}</strong></span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <ResultCards
               variants={variants}
               selectedIndex={selectedVariantIndex}
               onSelect={setSelectedVariantIndex}
-              onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); }}
+              onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); setDetectedPurpose(null); setDetectedChannel(null); setChannelReason(null); }}
               onRegenerate={handleGenerate}
+              images={channel === 'mms' ? mmsImages : undefined}
+              spamBlocked={isSpamBlocked}
             />
             {spamCheckerData && (
               <SpamCheckerAnalysis data={spamCheckerData} />
-            )}
-            {personalizationVars.length > 0 && (
-              <PersonalizationVars
-                vars={personalizationVars}
-                onInsert={(template) => setSource((prev) => prev + ' ' + template)}
-              />
-            )}
-            {fatigueData && (
-              <FatigueAlert
-                count={fatigueData.highFatigueCount}
-                rate={undefined}
-                recommendation={fatigueData.recommendation}
-              />
             )}
           </>
         )}
@@ -217,13 +240,13 @@ export default function OptionPage() {
       <div className={styles.sidebar}>
         <SummaryPanel
           channel={channel}
-          purpose={purpose}
+          purpose={purposeSelectorEnabled ? purpose : (detectedPurpose || undefined)}
           tone={tone}
           source={summarySource}
           season={season}
-          target={target}
-          sendTime={sendTime}
+          images={channel === 'mms' ? mmsImages : undefined}
         />
+      </div>
       </div>
     </div>
   );
