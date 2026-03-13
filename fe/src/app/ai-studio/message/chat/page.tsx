@@ -24,7 +24,7 @@ export default function ChatPage() {
 
   const streamingRef = useRef('');
   const { streamSSE } = useSSE();
-  const { agentMode, modelId } = useSettings();
+  const { agentMode, modelId, spamCheckEnabled } = useSettings();
 
   const handleSend = useCallback(
     async (message: string) => {
@@ -42,6 +42,7 @@ export default function ChatPage() {
           message,
           conversationHistory: updatedMessages,
           agentMode,
+          spamCheckEnabled,
           modelId,
         }),
         {
@@ -77,7 +78,7 @@ export default function ChatPage() {
         },
       );
     },
-    [messages, streamSSE, agentMode, modelId],
+    [messages, streamSSE, agentMode, spamCheckEnabled, modelId],
   );
 
   const handleQuickAction = useCallback(
