@@ -56,13 +56,35 @@
 .messageBody {
   background: var(--bg);
   border-radius: 10px;
-  padding: 14px;
   font-size: 13px;
   line-height: 1.8;
   min-height: 100px;
   border: 1px solid var(--bdr);
   margin-bottom: 14px;
   color: var(--tx);
+  overflow: hidden;
+}
+
+.mmsImageStrip {
+  display: flex;
+  gap: 0;
+}
+
+.mmsImageStrip img {
+  flex: 1;
+  min-width: 0;
+}
+
+.mmsImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  max-height: 160px;
+}
+
+.messageText {
+  padding: 14px;
 }
 
 .statsRow {
@@ -142,4 +164,19 @@
 .btnPrimary:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 16px rgba(108, 92, 231, 0.3);
+}
+
+.btnPrimary:disabled {
+  background: var(--bdr);
+  color: var(--tx3);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.spamWarning {
+  text-align: center;
+  font-size: 13px;
+  color: var(--accO);
+  padding: 8px 0 0;
 }

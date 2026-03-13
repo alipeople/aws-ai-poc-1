@@ -39,6 +39,8 @@ export interface ResultCardsProps {
   onReset?: () => void;
   onRegenerate?: () => void;
   onSend?: () => void;
+  images?: string[];
+  spamBlocked?: boolean;
 }
 
 export function ResultCards({
@@ -48,6 +50,8 @@ export function ResultCards({
   onReset,
   onRegenerate,
   onSend,
+  images,
+  spamBlocked,
 }: ResultCardsProps) {
   const items = variants.length > 0 ? variants : MOCK_VARIANTS;
 
@@ -71,7 +75,16 @@ export function ResultCards({
                 </span>
                 {i === 0 && <Badge variant="ai">✨ AI 추천</Badge>}
               </div>
-              <div className={styles.messageBody}>{v.text}</div>
+              <div className={styles.messageBody}>
+                {images && images.length > 0 && (
+                  <div className={styles.mmsImageStrip}>
+                    {images.map((src, idx) => (
+                      <img key={idx} src={src} alt={`MMS ${idx + 1}`} className={styles.mmsImage} />
+                    ))}
+                  </div>
+                )}
+                <div className={styles.messageText}>{v.text}</div>
+              </div>
               <div className={styles.statsRow}>
                 <div className={styles.statItem}>
                   <span className={styles.statLabel}>예상 오픈율</span>
@@ -116,10 +129,16 @@ export function ResultCards({
           type="button"
           className={styles.btnPrimary}
           onClick={onSend}
+          disabled={spamBlocked}
         >
-          📤 선택한 메시지로 발송하기
+          👥 누구에게 보낼까요?
         </button>
       </div>
+      {spamBlocked && (
+        <div className={styles.spamWarning}>
+          🚫 스팸으로 판정된 메시지는 다음 단계로 진행할 수 없습니다
+        </div>
+      )}
     </>
   );
 }
