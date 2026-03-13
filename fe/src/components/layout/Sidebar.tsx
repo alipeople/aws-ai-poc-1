@@ -9,7 +9,7 @@ interface MenuItem {
   label: string;
   icon: string;
   href?: string;
-  children?: { label: string; href: string; icon: string }[];
+  children?: { label: string; href: string; icon: string; implemented?: boolean }[];
 }
 
 const AI_STUDIO_MENU: MenuItem[] = [
@@ -18,8 +18,8 @@ const AI_STUDIO_MENU: MenuItem[] = [
     label: 'AI 메시지',
     icon: '✉️',
     children: [
-      { label: '옵션형 (단계별)', href: '/ai-studio/message/option', icon: '🎯' },
-      { label: '대화형 (AI 챗)', href: '/ai-studio/message/chat', icon: '💬' },
+      { label: '옵션형 (단계별)', href: '/ai-studio/message/option', icon: '🎯', implemented: true },
+      { label: '대화형 (AI 챗)', href: '/ai-studio/message/chat', icon: '💬', implemented: true },
     ],
   },
   {
@@ -98,16 +98,21 @@ export default function Sidebar() {
             </button>
             {expandedItems.includes(item.id) && item.children && (
               <div className={styles.submenu}>
-                {item.children.map(child => (
-                  <Link
-                    key={child.href}
-                    href={child.href}
-                    className={`${styles.submenuItem} ${isActive(child.href) ? styles.submenuItemActive : ''}`}
-                  >
-                    <span className={styles.submenuIcon}>{child.icon}</span>
-                    {child.label}
-                  </Link>
-                ))}
+                {item.children.map(child => {
+                  const isImpl = child.implemented !== false && child.implemented !== undefined;
+                  return (
+                    <Link
+                      key={child.href}
+                      href={isImpl ? child.href : '#'}
+                      className={`${styles.submenuItem} ${isActive(child.href) ? styles.submenuItemActive : ''} ${!isImpl ? styles.submenuDisabled : ''}`}
+                      onClick={isImpl ? undefined : (e) => e.preventDefault()}
+                    >
+                      <span className={styles.submenuIcon}>{child.icon}</span>
+                      {child.label}
+                      {!isImpl && <span className={styles.badge}>준비중</span>}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

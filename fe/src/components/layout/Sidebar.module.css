@@ -98,3 +98,28 @@
 }
 
 .creditsIcon { font-size: 14px; }
+
+/* Unimplemented menu items */
+.submenuDisabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+.submenuDisabled:hover {
+  background: none;
+  color: var(--tx2);
+}
+
+.badge {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--tx3);
+  background: var(--bg);
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  padding: 1px 5px;
+  margin-left: auto;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
