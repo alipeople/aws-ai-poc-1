@@ -10,12 +10,16 @@ export interface SettingsState {
   agentMode: AgentMode;
   modelId: string;
   theme: ThemeName;
+  spamCheckEnabled: boolean;
+  purposeSelectorEnabled: boolean;
 }
 
 export interface SettingsContextValue extends SettingsState {
   setAgentMode: (mode: AgentMode) => void;
   setModelId: (modelId: string) => void;
   setTheme: (theme: ThemeName) => void;
+  setSpamCheckEnabled: (enabled: boolean) => void;
+  setPurposeSelectorEnabled: (enabled: boolean) => void;
 }
 
 const STORAGE_KEY = 'sendon-ai-studio-settings';
@@ -24,6 +28,8 @@ const DEFAULT_SETTINGS: SettingsState = {
   agentMode: 'single',
   modelId: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
   theme: 'sendon',
+  spamCheckEnabled: true,
+  purposeSelectorEnabled: false,
 };
 
 function loadFromStorage(): SettingsState {
@@ -56,6 +62,8 @@ export const SettingsContext = createContext<SettingsContextValue>({
   setAgentMode: () => {},
   setModelId: () => {},
   setTheme: () => {},
+  setSpamCheckEnabled: () => {},
+  setPurposeSelectorEnabled: () => {},
 });
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
@@ -93,8 +101,24 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const setSpamCheckEnabled = (enabled: boolean) => {
+    setSettings((prev) => {
+      const next = { ...prev, spamCheckEnabled: enabled };
+      saveToStorage(next);
+      return next;
+    });
+  };
+
+  const setPurposeSelectorEnabled = (enabled: boolean) => {
+    setSettings((prev) => {
+      const next = { ...prev, purposeSelectorEnabled: enabled };
+      saveToStorage(next);
+      return next;
+    });
+  };
+
   return (
-    <SettingsContext.Provider value={{ ...settings, setAgentMode, setModelId, setTheme }}>
+    <SettingsContext.Provider value={{ ...settings, setAgentMode, setModelId, setTheme, setSpamCheckEnabled, setPurposeSelectorEnabled }}>
       {children}
     </SettingsContext.Provider>
   );
