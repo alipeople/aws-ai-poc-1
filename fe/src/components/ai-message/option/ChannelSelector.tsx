@@ -30,10 +30,15 @@ export function ChannelSelector({ value, onChange }: ChannelSelectorProps) {
             icon={ch.icon}
             label={ch.label}
             selected={value === ch.id}
-            onClick={() => onChange(ch.id)}
+            onClick={() => onChange(value === ch.id ? '' : ch.id)}
           />
         ))}
       </div>
+      {!value && (
+        <div className={styles.description}>
+          선택하지 않으면 AI가 자동으로 추천해요 ✨
+        </div>
+      )}
     </Card>
   );
 }
