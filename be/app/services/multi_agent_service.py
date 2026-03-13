@@ -139,6 +139,7 @@ class MultiAgentService:
         target: str = "",
         send_time: str = "",
         model_id: Optional[str] = None,
+        spam_check_enabled: bool = True,
     ) -> AsyncIterator[dict]:
         """
         Stream multi-agent message generation events.
@@ -154,7 +155,7 @@ class MultiAgentService:
 
         yield {
             "type": "progress",
-            "data": "메시지를 생성하고 있습니다...",
+            "data": "메시지 초안을 작성하고 있어요...",
             "agentName": "generator",
         }
 
@@ -169,20 +170,27 @@ class MultiAgentService:
                 send_time=send_time,
             )
 
+            agents = [
+                AgentNodeSpec("generator", GENERATOR_SYSTEM_PROMPT),
+                AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
+            ]
+            node_progress = {
+                "generator": "메시지 초안을 작성하고 있어요...",
+                "reviewer": "작성된 메시지를 검토하고 있어요...",
+            }
+            result_nodes = ["reviewer"]
+
+            if spam_check_enabled:
+                agents.append(AgentNodeSpec("spam_checker", SPAM_CHECKER_SYSTEM_PROMPT))
+                node_progress["spam_checker"] = "스팸 규정을 확인하고 있어요..."
+                result_nodes.append("spam_checker")
+
             async for event in self._build_and_stream_graph(
                 task=prompt,
-                agents=[
-                    AgentNodeSpec("generator", GENERATOR_SYSTEM_PROMPT),
-                    AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
-                    AgentNodeSpec("spam_checker", SPAM_CHECKER_SYSTEM_PROMPT),
-                ],
+                agents=agents,
                 resolved_model_id=resolved_model_id,
-                node_progress={
-                    "generator": "AI 에이전트가 메시지를 작성 중입니다...",
-                    "reviewer": "메시지를 검토하고 있습니다...",
-                    "spam_checker": "스팸 규정을 분석하고 있습니다...",
-                },
-                result_nodes=["reviewer", "spam_checker"],
+                node_progress=node_progress,
+                result_nodes=result_nodes,
             ):
                 yield event
 
@@ -195,6 +203,7 @@ class MultiAgentService:
         message: str,
         conversation_history: Optional[List[dict]] = None,
         model_id: Optional[str] = None,
+        spam_check_enabled: bool = True,
     ) -> AsyncIterator[dict]:
         """
         Stream multi-agent chat responses.
@@ -210,7 +219,7 @@ class MultiAgentService:
 
         yield {
             "type": "progress",
-            "data": "응답을 생성하고 있습니다...",
+            "data": "응답을 준비하고 있어요...",
             "agentName": "generator",
         }
 
@@ -229,19 +238,26 @@ class MultiAgentService:
                     f"현재 사용자 메시지: {message}"
                 )
 
+            agents = [
+                AgentNodeSpec("generator", system_prompt),
+                AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
+            ]
+            node_progress = {
+                "reviewer": "응답을 검토하고 있어요...",
+            }
+            result_nodes: list[str] = []
+
+            if spam_check_enabled:
+                agents.append(AgentNodeSpec("spam_checker", SPAM_CHECKER_SYSTEM_PROMPT))
+                node_progress["spam_checker"] = "스팸 규정을 확인하고 있어요..."
+                result_nodes.append("spam_checker")
+
             async for event in self._build_and_stream_graph(
                 task=prompt,
-                agents=[
-                    AgentNodeSpec("generator", system_prompt),
-                    AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
-                    AgentNodeSpec("spam_checker", SPAM_CHECKER_SYSTEM_PROMPT),
-                ],
+                agents=agents,
                 resolved_model_id=resolved_model_id,
-                node_progress={
-                    "reviewer": "응답을 검토하고 있습니다...",
-                    "spam_checker": "스팸 규정을 분석하고 있습니다...",
-                },
-                result_nodes=["spam_checker"],
+                node_progress=node_progress,
+                result_nodes=result_nodes if result_nodes else None,
             ):
                 yield event
 

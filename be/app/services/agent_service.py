@@ -13,6 +13,7 @@ from app.prompts.message_generator import (
     build_option_prompt,
     build_chat_system_prompt,
 )
+from app.prompts.spam_checker import SPAM_CHECKER_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class SingleAgentService:
         target: str = "",
         send_time: str = "",
         model_id: Optional[str] = None,
+        spam_check_enabled: bool = True,
     ) -> AsyncIterator[dict]:
         """
         Stream marketing message generation events.
@@ -51,7 +53,7 @@ class SingleAgentService:
 
         yield {
             "type": "progress",
-            "data": "메시지를 생성하고 있습니다...",
+            "data": "소재를 분석하고 있어요...",
             "agentName": agent_name,
         }
 
@@ -79,7 +81,7 @@ class SingleAgentService:
 
             yield {
                 "type": "progress",
-                "data": "AI 에이전트가 메시지를 작성 중입니다...",
+                "data": "메시지를 작성하고 있어요...",
                 "agentName": agent_name,
             }
 
@@ -102,6 +104,13 @@ class SingleAgentService:
                 "agentName": agent_name,
             }
 
+            # Optional spam check
+            if spam_check_enabled:
+                async for spam_event in self._run_spam_check(
+                    accumulated_text, model_id
+                ):
+                    yield spam_event
+
         except Exception as e:
             logger.exception("Error in generate_messages_stream")
             yield {
@@ -115,6 +124,7 @@ class SingleAgentService:
         message: str,
         conversation_history: Optional[List[dict]] = None,
         model_id: Optional[str] = None,
+        spam_check_enabled: bool = True,
     ) -> AsyncIterator[dict]:
         """
         Stream chat responses for conversational message assistance.
@@ -154,13 +164,22 @@ class SingleAgentService:
                     f"현재 사용자 메시지: {message}"
                 )
 
+            accumulated_text = ""
             async for event in agent.stream_async(prompt):
                 if "data" in event:
+                    accumulated_text += event["data"]
                     yield {
                         "type": "text",
                         "data": event["data"],
                         "agentName": agent_name,
                     }
+
+            # Optional spam check
+            if spam_check_enabled:
+                async for spam_event in self._run_spam_check(
+                    accumulated_text, model_id
+                ):
+                    yield spam_event
 
         except Exception as e:
             logger.exception("Error in chat_message_stream")
@@ -198,3 +217,52 @@ class SingleAgentService:
 
         # Fallback: wrap raw text
         return {"raw_text": text}
+
+    async def _run_spam_check(
+        self, text: str, model_id: Optional[str] = None
+    ) -> AsyncIterator[dict]:
+        """Run spam checker agent on the given text and yield SSE events."""
+        spam_agent_name = "spam_checker"
+
+        yield {
+            "type": "progress",
+            "data": "스팸 규정을 확인하고 있어요...",
+            "agentName": spam_agent_name,
+        }
+
+        try:
+            from strands import Agent
+
+            model = self._model_provider.get_model(
+                model_id or self._model_provider.get_default_model().model_id
+            )
+            spam_agent = Agent(
+                model=model,
+                system_prompt=SPAM_CHECKER_SYSTEM_PROMPT,
+            )
+
+            accumulated = ""
+            async for event in spam_agent.stream_async(text):
+                if "data" in event:
+                    chunk = event["data"]
+                    accumulated += chunk
+                    yield {
+                        "type": "text",
+                        "data": chunk,
+                        "agentName": spam_agent_name,
+                    }
+
+            parsed = self._extract_json_result(accumulated)
+            yield {
+                "type": "result",
+                "data": json.dumps(parsed, ensure_ascii=False),
+                "agentName": spam_agent_name,
+            }
+
+        except Exception as e:
+            logger.exception("Error in spam check")
+            yield {
+                "type": "error",
+                "data": str(e),
+                "agentName": spam_agent_name,
+            }
