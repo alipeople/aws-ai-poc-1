@@ -1,0 +1,217 @@
+.header {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.description {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 14px;
+  margin-top: 10px;
+}
+
+.chipGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tx2);
+  margin-bottom: 8px;
+}
+
+.toneToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.toneToggleInfo {
+  flex: 1;
+}
+
+.toneManual {
+  margin-top: 14px;
+}
+
+.toneManualLabel {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 8px;
+}
+
+.toneAiBody {
+  margin-top: 16px;
+}
+
+.toneAiLabel {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 10px;
+}
+
+.toneAiResult {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(108, 92, 231, 0.08);
+  border: 1px solid rgba(108, 92, 231, 0.2);
+}
+
+.toneAiResultTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pri);
+  margin-bottom: 4px;
+}
+
+.toneAiResultText {
+  font-size: 12px;
+  color: var(--tx2);
+}
+
+.pastMsg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--bdr);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: border-color 0.15s;
+}
+
+.pastMsgSelected {
+  border-color: var(--pri);
+  background: #f8f7ff;
+}
+
+.pastMsgMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pastMsgDate {
+  font-size: 11px;
+  color: var(--tx3);
+}
+
+.pastMsgCheck {
+  font-size: 11px;
+  color: var(--ok);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.pastMsgContent {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Source Input */
+.tabChips {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--bdr);
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--tx);
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  border-color: var(--priL);
+}
+
+.urlRow {
+  display: flex;
+  gap: 8px;
+}
+
+.urlInput {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--bdr);
+  font-size: 13px;
+  color: var(--tx);
+  background: #fff;
+  box-sizing: border-box;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.urlInput:focus {
+  border-color: var(--priL);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+.analyzeBtn {
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--pri), var(--priL));
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.analyzeBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.pastPlaceholder {
+  padding: 24px;
+  text-align: center;
+  color: var(--tx3);
+  font-size: 13px;
+  border: 1px dashed var(--bdr);
+  border-radius: 10px;
+}
+
+/* Season */
+.seasonDetect {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ok);
+  margin-bottom: 8px;
+}
+
+.seasonGroup {
+  margin-bottom: 12px;
+}
+
+.seasonGroupLabel {
+  font-size: 11px;
+  color: var(--tx3);
+  margin-bottom: 8px;
+}
+
+/* Target */
+.targetSection {
+  margin-bottom: 16px;
+}

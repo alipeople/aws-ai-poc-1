@@ -1,0 +1,16 @@
+[data-theme="dark"] {
+  --pri: #A29BFE;
+  --priL: #C7C3FF;
+  --priD: #7B72E9;
+  --acc: #FD79A8;
+  --accO: #FFEAA7;
+  --ok: #55EFC4;
+  --bg: #1A1A2E;
+  --card: #16213E;
+  --tx: #EAECEF;
+  --tx2: #A8B2C4;
+  --tx3: #5C6475;
+  --bdr: #2D3561;
+  --font: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 16px;
+}

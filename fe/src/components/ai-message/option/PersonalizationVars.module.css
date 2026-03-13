@@ -1,0 +1,85 @@
+/* PersonalizationVars — personalization variable recommendation card */
+
+.wrapper {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  border: 1px solid var(--bdr);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 14px;
+}
+
+.varRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--bdr);
+}
+
+.varRow:last-child {
+  border-bottom: none;
+}
+
+.varTemplate {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pri);
+  background: rgba(108, 92, 231, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.varDesc {
+  font-size: 12px;
+  color: var(--tx2);
+  flex: 1;
+}
+
+.insertBtn {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1.5px solid var(--bdr);
+  background: var(--card);
+  color: var(--tx);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.insertBtn:hover {
+  border-color: var(--pri);
+  color: var(--pri);
+}
+
+.insertBtnDone {
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1.5px solid var(--ok);
+  background: var(--card);
+  color: var(--ok);
+  cursor: default;
+  font-family: inherit;
+  white-space: nowrap;
+}

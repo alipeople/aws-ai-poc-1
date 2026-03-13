@@ -1,0 +1,86 @@
+.wrapper {
+  margin-top: 4px;
+}
+
+.label {
+  font-size: 12px;
+  color: var(--tx2);
+  margin-bottom: 8px;
+}
+
+.grid {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.thumb {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid var(--bdr);
+  flex-shrink: 0;
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: none;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.removeBtn:hover {
+  background: rgba(220, 53, 69, 0.85);
+}
+
+.addBtn {
+  width: 80px;
+  height: 80px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--bdr);
+  background: transparent;
+  color: var(--tx3);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.addBtn:hover {
+  border-color: var(--pri);
+  color: var(--pri);
+}
+
+.addBtnLabel {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.hiddenInput {
+  display: none;
+}

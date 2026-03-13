@@ -1,0 +1,16 @@
+[data-theme="toss"] {
+  --pri: #0064FF;
+  --priL: #4D94FF;
+  --priD: #0050CC;
+  --acc: #FF3D00;
+  --accO: #FF9500;
+  --ok: #04B014;
+  --bg: #F2F4F6;
+  --card: #FFFFFF;
+  --tx: #191F28;
+  --tx2: #4E5968;
+  --tx3: #8B95A1;
+  --bdr: #DFE3E8;
+  --font: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 12px;
+}

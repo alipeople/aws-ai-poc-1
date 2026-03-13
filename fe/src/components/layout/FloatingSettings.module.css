@@ -1,0 +1,160 @@
+/* FloatingSettings — bottom-right dev panel */
+
+.container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* Gear toggle button */
+.toggleBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--pri);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.toggleBtn:hover {
+  background: var(--priD);
+  transform: rotate(30deg);
+}
+
+/* Settings panel */
+.panel {
+  background: var(--card);
+  border: 1px solid var(--bdr);
+  border-radius: var(--radius);
+  padding: 16px;
+  width: 260px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panelTitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--tx3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--bdr);
+  padding-bottom: 8px;
+  margin: 0;
+}
+
+/* Section */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--tx2);
+  margin: 0;
+}
+
+/* Agent mode toggle */
+.modeToggle {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border-radius: calc(var(--radius) - 2px);
+  padding: 3px;
+}
+
+.modeBtn {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  background: transparent;
+  color: var(--tx2);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.modeBtn.active {
+  background: var(--pri);
+  color: #fff;
+}
+
+/* Model dropdown */
+.modelSelect {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--bdr);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--bg);
+  color: var(--tx);
+  font-size: 12px;
+  font-family: var(--font);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.modelSelect:focus {
+  border-color: var(--pri);
+}
+
+/* Theme dots */
+.themeGrid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.themeBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.themeBtn:hover {
+  background: var(--bg);
+}
+
+.themeBtn.activeTheme .themeDot {
+  outline: 2px solid var(--pri);
+  outline-offset: 2px;
+}
+
+.themeDot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.themeLabel {
+  font-size: 10px;
+  color: var(--tx3);
+  white-space: nowrap;
+}

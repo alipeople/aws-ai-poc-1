@@ -1,0 +1,76 @@
+.bubble {
+  display: flex;
+  gap: 10px;
+  max-width: 85%;
+}
+
+.bubbleAi {
+  align-self: flex-start;
+}
+
+.bubbleUser {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.bubbleAi .avatar {
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.bubbleUser .avatar {
+  background: var(--bdr);
+}
+
+.content {
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bubbleAi .content {
+  background: var(--bg);
+  border: 1px solid var(--bdr);
+  color: var(--tx);
+}
+
+.bubbleUser .content {
+  background: var(--pri);
+  color: #fff;
+}
+
+.agentLabel {
+  font-size: 11px;
+  color: var(--pri);
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding-left: 2px;
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--pri);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}

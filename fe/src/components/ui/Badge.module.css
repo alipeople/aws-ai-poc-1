@@ -1,0 +1,27 @@
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.ai {
+  background: rgba(108, 92, 231, 0.1);
+  color: var(--pri);
+}
+
+.ok {
+  background: rgba(0, 184, 148, 0.1);
+  color: var(--ok);
+}
+
+.warn {
+  background: rgba(253, 203, 110, 0.15);
+  color: #e17055;
+}
+
+.acc {
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--acc);
+}
