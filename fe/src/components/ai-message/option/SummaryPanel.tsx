@@ -41,26 +41,14 @@ const SEASON_LABELS: Record<string, string> = {
   newyear: '🎍 설날',
 };
 
-const TARGET_LABELS: Record<string, string> = {
-  all: '전체 발송',
-  addressbook: '주소록 선택',
-  'ai-recommend': 'AI 추천 타겟',
-};
-
-const SEND_TIME_LABELS: Record<string, string> = {
-  now: '즉시 발송',
-  scheduled: '예약 발송',
-  'ai-time': 'AI 추천 시간',
-};
 
 export interface SummaryPanelProps {
   channel: string;
-  purpose: string;
+  purpose?: string;
   tone: string;
   source: string;
   season: string;
-  target: string;
-  sendTime: string;
+  images?: string[];
 }
 
 interface SummaryRowProps {
@@ -85,23 +73,31 @@ export function SummaryPanel({
   tone,
   source,
   season,
-  target,
-  sendTime,
+  images,
 }: SummaryPanelProps) {
   return (
     <div className={styles.panel}>
       <div className={styles.title}>설정 요약</div>
 
       <SummaryRow label="채널" value={CHANNEL_LABELS[channel] || ''} />
-      <SummaryRow label="목적" value={PURPOSE_LABELS[purpose] || ''} />
+      {purpose && <SummaryRow label="목적" value={PURPOSE_LABELS[purpose] || ''} />}
       <SummaryRow label="톤앤매너" value={TONE_LABELS[tone] || ''} />
       <SummaryRow
         label="소재"
         value={source ? (source.length > 20 ? source.slice(0, 20) + '…' : source) : ''}
       />
       <SummaryRow label="시즌" value={SEASON_LABELS[season] || ''} />
-      <SummaryRow label="대상" value={TARGET_LABELS[target] || ''} />
-      <SummaryRow label="발송 시간" value={SEND_TIME_LABELS[sendTime] || ''} />
+
+      {images && images.length > 0 && (
+        <div className={styles.imagePreview}>
+          <span className={styles.label}>🖼️ MMS 이미지</span>
+          <div className={styles.imageGrid}>
+            {images.map((src, i) => (
+              <img key={i} src={src} alt={`MMS ${i + 1}`} className={styles.imageThumb} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className={styles.tip}>
         <div className={styles.tipTitle}>💡 Tip</div>
