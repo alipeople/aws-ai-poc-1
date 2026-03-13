@@ -19,7 +19,7 @@ class Channel(str, Enum):
 
 class MessageGenerateRequest(BaseModel):
     channel: str
-    purpose: str
+    purpose: str = ""
     tone: str
     tone_analysis: bool = Field(default=False, alias="toneAnalysis")
     source: str
@@ -28,6 +28,7 @@ class MessageGenerateRequest(BaseModel):
     target: Optional[str] = None
     send_time: Optional[str] = Field(default=None, alias="sendTime")
     agent_mode: AgentMode = Field(default=AgentMode.SINGLE, alias="agentMode")
+    spam_check_enabled: bool = Field(default=True, alias="spamCheckEnabled")
     model_id: str = Field(alias="modelId")
 
     model_config = {"populate_by_name": True}
@@ -44,6 +45,7 @@ class ChatRequest(BaseModel):
         default_factory=list, alias="conversationHistory"
     )
     agent_mode: AgentMode = Field(default=AgentMode.SINGLE, alias="agentMode")
+    spam_check_enabled: bool = Field(default=True, alias="spamCheckEnabled")
     model_id: str = Field(alias="modelId")
 
     model_config = {"populate_by_name": True}

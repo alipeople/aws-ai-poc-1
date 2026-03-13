@@ -33,6 +33,7 @@ async def generate_messages(request: MessageGenerateRequest, req: Request):
                 target=request.target or "",
                 send_time=request.send_time or "",
                 model_id=request.model_id,
+                spam_check_enabled=request.spam_check_enabled,
             ):
                 yield {"data": json.dumps(event, ensure_ascii=False)}
         except Exception as e:
@@ -73,6 +74,7 @@ async def chat_message(request: ChatRequest, req: Request):
                 message=request.message,
                 conversation_history=history,
                 model_id=request.model_id,
+                spam_check_enabled=request.spam_check_enabled,
             ):
                 yield {"data": json.dumps(event, ensure_ascii=False)}
         except Exception as e:

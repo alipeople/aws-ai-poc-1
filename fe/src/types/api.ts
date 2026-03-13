@@ -34,6 +34,7 @@ export interface MessageGenerateRequest {
   target?: string;
   sendTime?: string;
   agentMode: AgentMode;
+  spamCheckEnabled: boolean;
   modelId: string;
 }
 
@@ -119,6 +120,7 @@ export interface ChatRequest {
   message: string;
   conversationHistory: ChatMessage[];
   agentMode: AgentMode;
+  spamCheckEnabled: boolean;
   modelId: string;
 }
 
