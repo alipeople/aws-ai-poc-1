@@ -34,148 +34,101 @@ const SEVERITY_LABELS: Record<string, string> = {
   low: '낮음',
 };
 
-function getRiskLevelColor(level: SpamRiskLevel): 'green' | 'yellow' | 'red' {
+function getRiskColor(level: SpamRiskLevel): string {
   if (level === 'safe') return 'green';
   if (level === 'warning') return 'yellow';
   return 'red';
 }
 
-function VariantResult({ result }: { result: SpamCheckerVariantResult }) {
-  const color = getRiskLevelColor(result.risk_level);
-
-  const badgeClass = [
-    styles.riskBadge,
-    color === 'green'
-      ? styles.riskBadgeGreen
-      : color === 'yellow'
-        ? styles.riskBadgeYellow
-        : styles.riskBadgeRed,
-  ].join(' ');
+/** Compact card for a single variant (A/B/C) */
+function VariantCard({ result }: { result: SpamCheckerVariantResult }) {
+  const color = getRiskColor(result.risk_level);
+  const badgeClass = `${styles.riskBadge} ${styles[`riskBadge_${color}`]}`;
 
   return (
-    <div className={styles.variantBlock}>
-      <div className={styles.variantHeader}>
-        <span className={styles.variantLabel}>{result.label}안</span>
+    <div className={styles.card}>
+      {/* Header: label + risk badge */}
+      <div className={styles.cardHeader}>
+        <span className={styles.cardLabel}>{result.label}안</span>
         <span className={badgeClass}>
           {RISK_LEVEL_ICONS[result.risk_level]} {CLASSIFICATION_LABELS[result.classification] ?? result.classification}
         </span>
       </div>
 
       {/* Ad compliance */}
-      <div className={styles.complianceRow}>
-        <span className={styles.complianceIcon}>
-          {result.ad_compliance.has_ad_label ? '✅' : '❌'}
-        </span>
-        <span className={styles.complianceText}>(광고) 표기</span>
-        <span className={styles.complianceIcon}>
-          {result.ad_compliance.has_opt_out_number ? '✅' : '❌'}
-        </span>
-        <span className={styles.complianceText}>무료거부 번호</span>
+      <div className={styles.compliance}>
+        <span>{result.ad_compliance.has_ad_label ? '✅' : '❌'} (광고) 표기</span>
+        <span>{result.ad_compliance.has_opt_out_number ? '✅' : '❌'} 무료거부</span>
       </div>
 
-      {/* Risk factors */}
-      {result.risk_factors.length > 0 && (
-        <div className={styles.factorsSection}>
-          <div className={styles.factorsTitle}>위험 요소</div>
-          {result.risk_factors.map((factor, idx) => (
-            <div key={`${factor.keyword}-${idx}`} className={styles.factorRow}>
-              <span className={styles.factorKeyword}>{factor.keyword}</span>
-              <span className={styles.factorCategory}>{factor.category}</span>
-              <span className={
-                factor.severity === 'high'
-                  ? styles.factorSeverityHigh
-                  : factor.severity === 'medium'
-                    ? styles.factorSeverityMedium
-                    : styles.factorSeverityLow
-              }>
-                {SEVERITY_LABELS[factor.severity] ?? factor.severity}
-              </span>
-            </div>
+      {/* Risk factors (compact) */}
+      {result.risk_factors.length > 0 ? (
+        <div className={styles.factors}>
+          {result.risk_factors.map((f, i) => (
+            <span key={i} className={`${styles.factorTag} ${styles[`severity_${f.severity}`]}`}>
+              {f.keyword}
+              <span className={styles.factorSev}>{SEVERITY_LABELS[f.severity]}</span>
+            </span>
           ))}
         </div>
+      ) : (
+        <div className={styles.noIssue}>위험 요소 없음</div>
       )}
 
-      {/* Suggestions */}
+      {/* Suggestions (brief) */}
       {result.suggestions.length > 0 && (
-        <div className={styles.suggestionsSection}>
-          <div className={styles.suggestionsTitle}>💡 개선 제안</div>
-          <ul className={styles.suggestionsList}>
-            {result.suggestions.map((suggestion, idx) => (
-              <li key={idx} className={styles.suggestionItem}>{suggestion}</li>
-            ))}
-          </ul>
-        </div>
+        <ul className={styles.suggestions}>
+          {result.suggestions.map((s, i) => (
+            <li key={i}>{s}</li>
+          ))}
+        </ul>
       )}
     </div>
   );
 }
 
-function SingleResult({ data }: { data: SpamCheckerResult }) {
+/** Compact card for single-agent result (no variants) */
+function SingleCard({ data }: { data: SpamCheckerResult }) {
   const riskLevel = data.risk_level ?? 'safe';
   const classification = data.classification ?? 'HAM';
-  const color = getRiskLevelColor(riskLevel);
-
-  const badgeClass = [
-    styles.riskBadge,
-    color === 'green'
-      ? styles.riskBadgeGreen
-      : color === 'yellow'
-        ? styles.riskBadgeYellow
-        : styles.riskBadgeRed,
-  ].join(' ');
+  const color = getRiskColor(riskLevel);
+  const badgeClass = `${styles.riskBadge} ${styles[`riskBadge_${color}`]}`;
 
   return (
-    <div className={styles.variantBlock}>
-      <div className={styles.variantHeader}>
-        <span className={styles.variantLabel}>분석 결과</span>
+    <div className={styles.card}>
+      <div className={styles.cardHeader}>
+        <span className={styles.cardLabel}>분석 결과</span>
         <span className={badgeClass}>
           {RISK_LEVEL_ICONS[riskLevel]} {CLASSIFICATION_LABELS[classification] ?? classification}
         </span>
       </div>
 
       {data.ad_compliance && (
-        <div className={styles.complianceRow}>
-          <span className={styles.complianceIcon}>
-            {data.ad_compliance.has_ad_label ? '✅' : '❌'}
-          </span>
-          <span className={styles.complianceText}>(광고) 표기</span>
-          <span className={styles.complianceIcon}>
-            {data.ad_compliance.has_opt_out_number ? '✅' : '❌'}
-          </span>
-          <span className={styles.complianceText}>무료거부 번호</span>
+        <div className={styles.compliance}>
+          <span>{data.ad_compliance.has_ad_label ? '✅' : '❌'} (광고) 표기</span>
+          <span>{data.ad_compliance.has_opt_out_number ? '✅' : '❌'} 무료거부</span>
         </div>
       )}
 
-      {data.risk_factors && data.risk_factors.length > 0 && (
-        <div className={styles.factorsSection}>
-          <div className={styles.factorsTitle}>위험 요소</div>
-          {data.risk_factors.map((factor, idx) => (
-            <div key={`${factor.keyword}-${idx}`} className={styles.factorRow}>
-              <span className={styles.factorKeyword}>{factor.keyword}</span>
-              <span className={styles.factorCategory}>{factor.category}</span>
-              <span className={
-                factor.severity === 'high'
-                  ? styles.factorSeverityHigh
-                  : factor.severity === 'medium'
-                    ? styles.factorSeverityMedium
-                    : styles.factorSeverityLow
-              }>
-                {SEVERITY_LABELS[factor.severity] ?? factor.severity}
-              </span>
-            </div>
+      {data.risk_factors && data.risk_factors.length > 0 ? (
+        <div className={styles.factors}>
+          {data.risk_factors.map((f, i) => (
+            <span key={i} className={`${styles.factorTag} ${styles[`severity_${f.severity}`]}`}>
+              {f.keyword}
+              <span className={styles.factorSev}>{SEVERITY_LABELS[f.severity]}</span>
+            </span>
           ))}
         </div>
+      ) : (
+        <div className={styles.noIssue}>위험 요소 없음</div>
       )}
 
       {data.suggestions && data.suggestions.length > 0 && (
-        <div className={styles.suggestionsSection}>
-          <div className={styles.suggestionsTitle}>💡 개선 제안</div>
-          <ul className={styles.suggestionsList}>
-            {data.suggestions.map((suggestion, idx) => (
-              <li key={idx} className={styles.suggestionItem}>{suggestion}</li>
-            ))}
-          </ul>
-        </div>
+        <ul className={styles.suggestions}>
+          {data.suggestions.map((s, i) => (
+            <li key={i}>{s}</li>
+          ))}
+        </ul>
       )}
     </div>
   );
@@ -185,34 +138,26 @@ export function SpamCheckerAnalysis({ data }: SpamCheckerAnalysisProps) {
   const hasVariants = data.results && data.results.length > 0;
   const overallLevel = data.overall_risk_level ?? data.risk_level ?? 'safe';
   const overallClassification = data.overall_classification ?? data.classification ?? 'HAM';
-  const color = getRiskLevelColor(overallLevel);
-
-  const overallBadgeClass = [
-    styles.overallBadge,
-    color === 'green'
-      ? styles.overallBadgeGreen
-      : color === 'yellow'
-        ? styles.overallBadgeYellow
-        : styles.overallBadgeRed,
-  ].join(' ');
+  const color = getRiskColor(overallLevel);
+  const overallBadgeClass = `${styles.overallBadge} ${styles[`overallBadge_${color}`]}`;
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.headerRow}>
-        <div className={styles.title}>
+      <div className={styles.titleRow}>
+        <span className={styles.title}>
           🛡️ KISA 스팸 분석 <Badge variant="ai">AI</Badge>
-        </div>
+        </span>
         <span className={overallBadgeClass}>
           {RISK_LEVEL_ICONS[overallLevel]} {RISK_LEVEL_LABELS[overallLevel]} — {CLASSIFICATION_LABELS[overallClassification] ?? overallClassification}
         </span>
       </div>
 
-      {hasVariants
-        ? data.results!.map((result) => (
-            <VariantResult key={result.label} result={result} />
-          ))
-        : <SingleResult data={data} />
-      }
+      <div className={hasVariants ? styles.grid : undefined}>
+        {hasVariants
+          ? data.results!.map((r) => <VariantCard key={r.label} result={r} />)
+          : <SingleCard data={data} />
+        }
+      </div>
     </div>
   );
 }

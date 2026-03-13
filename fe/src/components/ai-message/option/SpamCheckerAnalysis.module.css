@@ -1,14 +1,14 @@
-/* SpamCheckerAnalysis — KISA spam classification card */
+/* SpamCheckerAnalysis — horizontal A/B/C grid */
 
 .wrapper {
   background: var(--card);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--bdr);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.headerRow {
+/* Title row */
+.titleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -34,46 +34,58 @@
   gap: 4px;
 }
 
-.overallBadgeGreen {
+.overallBadge_green {
   background: rgba(0, 200, 83, 0.1);
   color: var(--ok);
 }
 
-.overallBadgeYellow {
+.overallBadge_yellow {
   background: rgba(255, 152, 0, 0.1);
   color: #e17055;
 }
 
-.overallBadgeRed {
+.overallBadge_red {
   background: rgba(255, 71, 87, 0.1);
   color: var(--acc);
 }
 
-/* Variant block */
-.variantBlock {
-  padding: 14px 0;
-  border-bottom: 1px solid var(--bdr);
+/* 3-column grid (matches ResultCards) */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.variantBlock:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.variantHeader {
+/* Per-variant card */
+.card {
+  background: var(--bg);
+  border: 1px solid var(--bdr);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
 }
 
-.variantLabel {
+.cardLabel {
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--tx);
 }
 
-/* Risk badge (per variant) */
+/* Risk badge */
 .riskBadge {
   font-size: 11px;
   font-weight: 600;
@@ -82,121 +94,96 @@
   display: flex;
   align-items: center;
   gap: 3px;
+  white-space: nowrap;
 }
 
-.riskBadgeGreen {
+.riskBadge_green {
   background: rgba(0, 200, 83, 0.1);
   color: var(--ok);
 }
 
-.riskBadgeYellow {
+.riskBadge_yellow {
   background: rgba(255, 152, 0, 0.1);
   color: #e17055;
 }
 
-.riskBadgeRed {
+.riskBadge_red {
   background: rgba(255, 71, 87, 0.1);
   color: var(--acc);
 }
 
 /* Compliance row */
-.complianceRow {
+.compliance {
   display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 0;
-  font-size: 12px;
-}
-
-.complianceIcon {
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.complianceText {
-  color: var(--tx2);
-  margin-right: 10px;
-}
-
-/* Risk factors */
-.factorsSection {
-  margin-top: 8px;
-}
-
-.factorsTitle {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--tx2);
-  margin-bottom: 6px;
-}
-
-.factorRow {
-  display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  padding: 4px 0;
-  font-size: 12px;
-}
-
-.factorKeyword {
-  font-weight: 600;
-  color: var(--tx);
-  background: rgba(255, 71, 87, 0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.factorCategory {
-  color: var(--tx3);
-}
-
-.factorSeverityHigh {
-  color: var(--acc);
-  font-weight: 600;
   font-size: 11px;
+  color: var(--tx2);
 }
 
-.factorSeverityMedium {
-  color: #e17055;
-  font-weight: 600;
+/* Risk factor tags */
+.factors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.factorTag {
   font-size: 11px;
-}
-
-.factorSeverityLow {
-  color: var(--tx3);
   font-weight: 500;
-  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.factorSev {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.severity_high {
+  background: rgba(255, 71, 87, 0.08);
+  color: var(--acc);
+}
+
+.severity_medium {
+  background: rgba(255, 152, 0, 0.08);
+  color: #e17055;
+}
+
+.severity_low {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--tx3);
+}
+
+.noIssue {
+  font-size: 12px;
+  color: var(--ok);
+  font-weight: 500;
 }
 
 /* Suggestions */
-.suggestionsSection {
-  margin-top: 10px;
-}
-
-.suggestionsTitle {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--tx2);
-  margin-bottom: 6px;
-}
-
-.suggestionsList {
+.suggestions {
   list-style: none;
   margin: 0;
   padding: 0;
+  font-size: 11px;
+  color: var(--tx2);
+  line-height: 1.6;
+  border-top: 1px solid var(--bdr);
+  padding-top: 8px;
 }
 
-.suggestionItem {
-  font-size: 12px;
-  color: var(--tx2);
-  padding: 3px 0;
-  padding-left: 16px;
+.suggestions li {
+  padding-left: 14px;
   position: relative;
 }
 
-.suggestionItem::before {
-  content: '•';
+.suggestions li::before {
+  content: '💡';
   position: absolute;
-  left: 4px;
-  color: var(--tx3);
+  left: 0;
+  font-size: 10px;
 }
