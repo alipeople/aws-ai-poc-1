@@ -29,7 +29,7 @@ const DEFAULT_SETTINGS: SettingsState = {
   modelId: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
   theme: 'sendon',
   spamCheckEnabled: true,
-  purposeSelectorEnabled: false,
+  purposeSelectorEnabled: true,
 };
 
 function loadFromStorage(): SettingsState {

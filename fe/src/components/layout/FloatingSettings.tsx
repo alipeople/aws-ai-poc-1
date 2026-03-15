@@ -21,7 +21,7 @@ const THEMES: { name: ThemeName; label: string; color: string }[] = [
 
 export default function FloatingSettings() {
   const [open, setOpen] = useState(false);
-  const { agentMode, modelId, theme, spamCheckEnabled, purposeSelectorEnabled, setAgentMode, setModelId, setTheme, setSpamCheckEnabled, setPurposeSelectorEnabled } = useSettings();
+  const { agentMode, modelId, theme, spamCheckEnabled, setAgentMode, setModelId, setTheme, setSpamCheckEnabled } = useSettings();
 
   return (
     <div className={styles.container}>
@@ -58,25 +58,6 @@ export default function FloatingSettings() {
               <button
                 className={`${styles.modeBtn} ${!spamCheckEnabled ? styles.active : ''}`}
                 onClick={() => setSpamCheckEnabled(false)}
-              >
-                OFF
-              </button>
-            </div>
-          </div>
-
-          {/* Purpose Selector */}
-          <div className={styles.section}>
-            <p className={styles.sectionLabel}>메시지 목적 선택</p>
-            <div className={styles.modeToggle}>
-              <button
-                className={`${styles.modeBtn} ${purposeSelectorEnabled ? styles.active : ''}`}
-                onClick={() => setPurposeSelectorEnabled(true)}
-              >
-                ON
-              </button>
-              <button
-                className={`${styles.modeBtn} ${!purposeSelectorEnabled ? styles.active : ''}`}
-                onClick={() => setPurposeSelectorEnabled(false)}
               >
                 OFF
               </button>
