@@ -73,6 +73,8 @@ async def analyze_url(request: UrlAnalysisRequest):
                 "상품 정보를 구조화하는 전문가입니다. "
                 "제공된 텍스트에서 상품명, 가격, 할인율, 카테고리, "
                 "주요 특징을 정확히 추출하세요. "
+                "쇼핑몰 페이지인 경우 productName과 price는 반드시 추출하세요. "
+                "페이지에서 확인 가능한 정확한 값을 사용하세요. "
                 "추측하지 말고, 제공된 데이터에 있는 정보만 사용하세요. "
                 "JSON 형식으로만 응답하세요."
             ),
@@ -109,9 +111,26 @@ async def analyze_url(request: UrlAnalysisRequest):
         response_text = str(result)
         parsed = _extract_json(response_text)
 
+        product_name = parsed.get("productName", "")
+        # Fallback: if productName is empty, try to extract from extracted text format
+        if not product_name and page_content:
+            title_match = re.search(r'제목:\s*(.+)', page_content)
+            if title_match:
+                product_name = title_match.group(1).strip()
+        product_name = product_name or "분석된 상품"
+
+        price = parsed.get("price")
+        # Fallback: if price is missing, try og:price:amount from extracted text
+        if not price and page_content:
+            og_price_match = re.search(
+                r'og:price:amount:\s*(.+)', page_content,
+            )
+            if og_price_match:
+                price = og_price_match.group(1).strip()
+
         return UrlAnalysisResponse(
-            productName=parsed.get("productName", "분석된 상품"),
-            price=parsed.get("price"),
+            productName=product_name,
+            price=price,
             discount=parsed.get("discount"),
             category=parsed.get("category"),
             features=parsed.get("features", []),
