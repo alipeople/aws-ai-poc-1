@@ -23,7 +23,7 @@ export default function OptionPage() {
   const [channel, setChannel] = useState('');
   const [purpose, setPurpose] = useState('');
   const [tone, setTone] = useState('');
-  const [aiMode, setAiMode] = useState(true);
+  const [aiMode, setAiMode] = useState(false);
   const [source, setSource] = useState('');
   const [sourceType, setSourceType] = useState<'direct' | 'url' | 'past'>('direct');
   const [sourceUrl, setSourceUrl] = useState('');

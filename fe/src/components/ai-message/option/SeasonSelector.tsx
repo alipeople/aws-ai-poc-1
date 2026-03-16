@@ -3,7 +3,6 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
-import { Badge } from '@/components/ui/Badge';
 import styles from './StepHeader.module.css';
 
 const RECOMMENDED_SEASONS = [
@@ -30,8 +29,7 @@ export function SeasonSelector({ value, onChange }: SeasonSelectorProps) {
   return (
     <Card>
       <div className={styles.header}>
-        ⑤ 시즌 &amp; 이벤트{' '}
-        <Badge variant="ok">자동감지</Badge>
+        ⑤ 시즌 &amp; 이벤트
       </div>
       <div className={styles.description}>
         현재 시즌에 맞는 이벤트 키워드를 자연스럽게 반영합니다
