@@ -27,6 +27,12 @@ const TONE_LABELS: Record<string, string> = {
   humor: '😎 캐주얼',
   emotional: '💜 감성체',
   urgent: '🔥 긴급',
+  kind: '🤗 친절한',
+  caring: '💝 세심한',
+  professional: '💼 전문적',
+  witty: '😄 위트있는',
+  warm: '🌷 따뜻한',
+  concise: '✂️ 간결한',
 };
 
 const SEASON_LABELS: Record<string, string> = {

@@ -44,11 +44,12 @@ export default function OptionPage() {
   const [detectedPurpose, setDetectedPurpose] = useState<string | null>(null);
   const [detectedChannel, setDetectedChannel] = useState<string | null>(null);
   const [channelReason, setChannelReason] = useState<string | null>(null);
+  const [performanceTip, setPerformanceTip] = useState<string | null>(null);
 
   const accumulatedTextRef = useRef('');
   const resultAreaRef = useRef<HTMLDivElement>(null);
   const { streamSSE } = useSSE();
-  const { agentMode, modelId, spamCheckEnabled, purposeSelectorEnabled } = useSettings();
+  const { agentMode, modelId, spamCheckEnabled } = useSettings();
 
 
   const canGenerate = source.trim().length > 0;
@@ -77,6 +78,7 @@ export default function OptionPage() {
     setDetectedPurpose(null);
     setDetectedChannel(null);
     setChannelReason(null);
+    setPerformanceTip(null);
     accumulatedTextRef.current = '';
     setLoadingStep('메시지를 생성하고 있습니다...');
     setTimeout(() => resultAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
@@ -85,7 +87,7 @@ export default function OptionPage() {
       api.generateMessagesUrl(),
       api.buildGenerateBody({
         channel: channel as Parameters<typeof api.buildGenerateBody>[0]['channel'],
-        purpose: (purposeSelectorEnabled ? (purpose || '프로모션') : '') as Parameters<typeof api.buildGenerateBody>[0]['purpose'],
+        purpose: (purpose || '프로모션') as Parameters<typeof api.buildGenerateBody>[0]['purpose'],
         tone: (tone || '친근체') as Parameters<typeof api.buildGenerateBody>[0]['tone'],
         source: source.trim(),
         sourceType: sourceType,
@@ -115,6 +117,9 @@ export default function OptionPage() {
                 }
                 if (parsed.channelReason) {
                   setChannelReason(parsed.channelReason as string);
+                }
+                if (parsed.performanceTip) {
+                  setPerformanceTip(parsed.performanceTip as string);
                 }
               }
             } catch {
@@ -172,7 +177,8 @@ export default function OptionPage() {
       <div className={styles.steps}>
         <ChannelSelector value={channel} onChange={setChannel} />
         {channel === 'mms' && <ImageUploader images={mmsImages} onChange={setMmsImages} />}
-        {purposeSelectorEnabled && <PurposeSelector value={purpose} onChange={setPurpose} />}
+        <PurposeSelector value={purpose} onChange={setPurpose} />
+        <SeasonSelector value={season} onChange={setSeason} />
         <ToneSelector
           value={tone}
           onChange={setTone}
@@ -220,11 +226,18 @@ export default function OptionPage() {
               </div>
             )}
 
+            {performanceTip && (
+              <div style={{ padding: '12px 16px', background: 'color-mix(in srgb, var(--accY) 10%, transparent)', borderRadius: 'var(--radius)', fontSize: 13, color: 'var(--tx)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16 }}>💡</span>
+                <span>{performanceTip}</span>
+              </div>
+            )}
+
             <ResultCards
               variants={variants}
               selectedIndex={selectedVariantIndex}
               onSelect={setSelectedVariantIndex}
-              onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); setDetectedPurpose(null); setDetectedChannel(null); setChannelReason(null); }}
+              onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); setDetectedPurpose(null); setDetectedChannel(null); setChannelReason(null); setPerformanceTip(null); }}
               onRegenerate={handleGenerate}
               images={channel === 'mms' ? mmsImages : undefined}
               spamBlocked={isSpamBlocked}
@@ -240,7 +253,7 @@ export default function OptionPage() {
       <div className={styles.sidebar}>
         <SummaryPanel
           channel={channel}
-          purpose={purposeSelectorEnabled ? purpose : (detectedPurpose || undefined)}
+          purpose={purpose || detectedPurpose || undefined}
           tone={tone}
           source={summarySource}
           season={season}

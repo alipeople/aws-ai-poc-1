@@ -3,7 +3,7 @@ export type AgentMode = 'single' | 'multi';
 
 export type Channel = 'SMS' | 'LMS' | 'MMS' | '알림톡' | '브랜드' | 'RCS';
 export type Purpose = '프로모션' | '안내' | '이벤트' | '리마인더' | '리뷰요청' | '인사';
-export type Tone = '친근체' | '격식체' | '유머러스' | '긴급체' | '감성체';
+export type Tone = '친근체' | '격식체' | '유머러스' | '긴급체' | '감성체' | '친절한' | '세심한' | '전문적' | '위트있는' | '따뜻한' | '간결한';
 export type SourceType = 'direct' | 'url' | 'past';
 
 export type Theme = 'sendon' | 'toss' | 'retro' | 'dark' | 'pastel';

@@ -13,6 +13,12 @@ const TONES = [
   { id: 'humor', label: '캐주얼', icon: '😎' },
   { id: 'emotional', label: '감성체', icon: '💜' },
   { id: 'urgent', label: '긴급', icon: '🔥' },
+  { id: 'kind', label: '친절한', icon: '🤗' },
+  { id: 'caring', label: '세심한', icon: '💝' },
+  { id: 'professional', label: '전문적', icon: '💼' },
+  { id: 'witty', label: '위트있는', icon: '😄' },
+  { id: 'warm', label: '따뜻한', icon: '🌷' },
+  { id: 'concise', label: '간결한', icon: '✂️' },
 ] as const;
 
 interface PastMessage {
@@ -107,6 +113,26 @@ export function ToneSelector({
         <div className={styles.toneManual}>
           <div className={styles.toneManualLabel}>
             또는 톤을 직접 선택하세요
+          </div>
+          <div className={styles.chipGrid}>
+            {TONES.map((t) => (
+              <Chip
+                key={t.id}
+                icon={t.icon}
+                label={t.label}
+                selected={value === t.id}
+                onClick={() => onChange(t.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Manual tone fallback (shown when toggle ON) */}
+      {aiMode && (
+        <div className={styles.toneManual}>
+          <div className={styles.toneManualLabel}>
+            마음에 드는 톤이 없다면 직접 선택하세요
           </div>
           <div className={styles.chipGrid}>
             {TONES.map((t) => (
