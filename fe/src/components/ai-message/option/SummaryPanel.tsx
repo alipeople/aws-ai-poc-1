@@ -117,11 +117,7 @@ export function SummaryPanel({
         <div className={styles.featuresList}>
           🔀 A/B 변형 3종 자동 생성
           <br />
-          🛡️ 스팸 점수 사전 예측
-          <br />
-          👤 개인화 변수 자동 삽입
-          <br />
-          😴 수신자 피로도 체크
+          🛡️ KISA 스팸 규정 분석
         </div>
       </div>
     </div>

@@ -85,6 +85,8 @@
 
 .messageText {
   padding: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .statsRow {
