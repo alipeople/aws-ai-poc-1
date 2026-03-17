@@ -74,7 +74,7 @@ export function SourceInput({
             🔗 상품 URL 분석 <Badge variant="ai">AI</Badge>
           </div>
           <div className={styles.description}>
-            카페24, 쿠팡, 네이버 스마트스토어, 11번가 링크를 지원합니다
+            카페24, 네이버 브랜드스토어, 11번가 등 대부분의 쇼핑몰 링크를 지원합니다
           </div>
           <div className={styles.urlRow}>
             <input

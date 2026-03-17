@@ -47,6 +47,7 @@ export default function OptionPage() {
   const [performanceTip, setPerformanceTip] = useState<string | null>(null);
 
   const accumulatedTextRef = useRef('');
+  const hasStreamErrorRef = useRef(false);
   const resultAreaRef = useRef<HTMLDivElement>(null);
   const { streamSSE } = useSSE();
   const { agentMode, modelId, spamCheckEnabled } = useSettings();
@@ -80,6 +81,7 @@ export default function OptionPage() {
     setChannelReason(null);
     setPerformanceTip(null);
     accumulatedTextRef.current = '';
+    hasStreamErrorRef.current = false;
     setLoadingStep('메시지를 생성하고 있습니다...');
     setTimeout(() => resultAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
@@ -126,12 +128,15 @@ export default function OptionPage() {
               // Result parsing failure — will use mock variants
             }
           } else if (event.type === 'error') {
+            hasStreamErrorRef.current = true;
             setError(typeof event.data === 'string' ? event.data : '생성 중 오류가 발생했습니다.');
           }
         },
         onComplete: () => {
           setIsLoading(false);
-          setShowResults(true);
+          if (!hasStreamErrorRef.current) {
+            setShowResults(true);
+          }
         },
         onError: (err) => {
           setIsLoading(false);
@@ -157,8 +162,9 @@ export default function OptionPage() {
         .join('\n');
       setSource(summary);
       setSourceType('direct');
-    } catch {
-      setError('URL 분석에 실패했습니다. 직접 입력해주세요.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'URL 분석에 실패했습니다.';
+      setError(message);
     } finally {
       setIsAnalyzing(false);
     }
