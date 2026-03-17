@@ -17,6 +17,11 @@ router = APIRouter()
 async def generate_messages(request: MessageGenerateRequest, req: Request):
     """Generate AI marketing messages via SSE stream or JSON fallback."""
 
+    logger.info(
+        "[generate] model=%s agent=%s spam=%s channel=%s",
+        request.model_id, request.agent_mode, request.spam_check_enabled, request.channel,
+    )
+
     async def event_generator():
         try:
             service = (
@@ -57,6 +62,11 @@ async def generate_messages(request: MessageGenerateRequest, req: Request):
 @router.post("/api/messages/chat")
 async def chat_message(request: ChatRequest, req: Request):
     """Chat with AI assistant via SSE stream or JSON fallback."""
+
+    logger.info(
+        "[chat] model=%s agent=%s spam=%s",
+        request.model_id, request.agent_mode, request.spam_check_enabled,
+    )
 
     async def event_generator():
         try:
