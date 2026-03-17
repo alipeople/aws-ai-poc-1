@@ -17,27 +17,35 @@ class ModelInfo:
 
 
 # Available Bedrock models catalog
+# NOTE: ap-northeast-2 리전에서는 us.* 프로필 사용 불가.
+#       apac.* (APAC 리전) 또는 global.* (전 세계) 프로필을 사용해야 합니다.
 AVAILABLE_MODELS: List[ModelInfo] = [
     ModelInfo(
-        id="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        id="global.anthropic.claude-opus-4-6-v1",
+        name="Claude Opus 4.6",
+        provider="Anthropic",
+        description="최고 성능 플래그십 모델",
+    ),
+    ModelInfo(
+        id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
         name="Claude Sonnet 4",
         provider="Anthropic",
         description="고성능 균형 모델 (추천)",
     ),
     ModelInfo(
-        id="us.anthropic.claude-haiku-4-20250514-v1:0",
-        name="Claude Haiku 4",
+        id="global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        name="Claude Haiku 4.5",
         provider="Anthropic",
         description="빠르고 경제적인 모델",
     ),
     ModelInfo(
-        id="us.amazon.nova-pro-v1:0",
+        id="apac.amazon.nova-pro-v1:0",
         name="Amazon Nova Pro",
         provider="Amazon",
         description="AWS 네이티브 고성능 모델",
     ),
     ModelInfo(
-        id="us.amazon.nova-lite-v1:0",
+        id="apac.amazon.nova-lite-v1:0",
         name="Amazon Nova Lite",
         provider="Amazon",
         description="AWS 네이티브 경량 모델",

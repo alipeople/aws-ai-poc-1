@@ -26,18 +26,31 @@ const STORAGE_KEY = 'sendon-ai-studio-settings';
 
 const DEFAULT_SETTINGS: SettingsState = {
   agentMode: 'single',
-  modelId: 'us.anthropic.claude-sonnet-4-20250514-v1:0',
+  modelId: 'apac.anthropic.claude-sonnet-4-20250514-v1:0',
   theme: 'sendon',
   spamCheckEnabled: true,
   purposeSelectorEnabled: true,
 };
+
+// Known valid model ID prefixes for the current AWS region (ap-northeast-2).
+// us.* prefixes are NOT valid — they were used in a previous configuration.
+const VALID_MODEL_PREFIXES = ['apac.', 'global.'];
+
+function isValidModelId(modelId: string): boolean {
+  return VALID_MODEL_PREFIXES.some((p) => modelId.startsWith(p));
+}
 
 function loadFromStorage(): SettingsState {
   if (typeof window === 'undefined') return DEFAULT_SETTINGS;
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    const stored = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    // Reset stale model IDs (e.g. us.* from previous config)
+    if (!isValidModelId(stored.modelId)) {
+      stored.modelId = DEFAULT_SETTINGS.modelId;
+    }
+    return stored;
   } catch {
     return DEFAULT_SETTINGS;
   }

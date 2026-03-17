@@ -5,10 +5,11 @@ import { useSettings, ThemeName, AgentMode } from '@/context/SettingsContext';
 import styles from './FloatingSettings.module.css';
 
 const MODELS = [
-  { id: 'us.anthropic.claude-sonnet-4-20250514-v1:0', label: 'Claude Sonnet 4' },
-  { id: 'us.anthropic.claude-3-5-haiku-20241022-v1:0', label: 'Claude Haiku 3.5' },
-  { id: 'us.amazon.nova-pro-v1:0', label: 'Amazon Nova Pro' },
-  { id: 'us.amazon.nova-lite-v1:0', label: 'Amazon Nova Lite' },
+  { id: 'global.anthropic.claude-opus-4-6-v1', label: 'Claude Opus 4.6' },
+  { id: 'apac.anthropic.claude-sonnet-4-20250514-v1:0', label: 'Claude Sonnet 4' },
+  { id: 'global.anthropic.claude-haiku-4-5-20251001-v1:0', label: 'Claude Haiku 4.5' },
+  { id: 'apac.amazon.nova-pro-v1:0', label: 'Amazon Nova Pro' },
+  { id: 'apac.amazon.nova-lite-v1:0', label: 'Amazon Nova Lite' },
 ] as const;
 
 const THEMES: { name: ThemeName; label: string; color: string }[] = [

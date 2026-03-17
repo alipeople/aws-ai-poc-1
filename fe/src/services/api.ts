@@ -20,7 +20,15 @@ async function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
   if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${response.statusText}`);
+    // Try to extract detail message from FastAPI error response
+    let detail = response.statusText;
+    try {
+      const body = await response.json();
+      if (body.detail) detail = body.detail;
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(detail);
   }
   return response.json() as Promise<T>;
 }
