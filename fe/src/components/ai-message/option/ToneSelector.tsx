@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { Toggle } from '@/components/ui/Toggle';
@@ -62,13 +62,26 @@ export function ToneSelector({
   aiMode,
   onAiModeChange,
 }: ToneSelectorProps) {
+  const isCustom = value !== '' && !TONES.some((t) => t.id === value);
+  const [showCustomInput, setShowCustomInput] = useState(isCustom);
+
+  const handleCustomClick = () => {
+    setShowCustomInput(true);
+    onChange('');
+  };
+
+  const handlePresetClick = (id: string) => {
+    setShowCustomInput(false);
+    onChange(id);
+  };
+
   return (
     <Card glow={aiMode}>
       {/* Toggle row */}
       <div className={styles.toneToggleRow}>
         <div className={styles.toneToggleInfo}>
           <div className={styles.header} style={{ marginBottom: 0 }}>
-            ③ 기존 메시지 톤앤매너 분석{' '}
+            ④ 톤앤매너 분석{' '}
             <Badge variant="ai">AI</Badge>
           </div>
           <div className={styles.description} style={{ marginTop: 4, marginBottom: 0 }}>
@@ -120,11 +133,26 @@ export function ToneSelector({
                 key={t.id}
                 icon={t.icon}
                 label={t.label}
-                selected={value === t.id}
-                onClick={() => onChange(t.id)}
+                selected={!showCustomInput && value === t.id}
+                onClick={() => handlePresetClick(t.id)}
               />
             ))}
+            <Chip
+              icon="✏️"
+              label="직접 입력"
+              selected={showCustomInput}
+              onClick={handleCustomClick}
+            />
           </div>
+          {showCustomInput && (
+            <input
+              className={styles.customInput}
+              placeholder="예: MZ세대 말투, 할머니한테 쓰는 느낌..."
+              value={isCustom ? value : ''}
+              onChange={(e) => onChange(e.target.value)}
+              autoFocus
+            />
+          )}
         </div>
       )}
 
@@ -140,11 +168,26 @@ export function ToneSelector({
                 key={t.id}
                 icon={t.icon}
                 label={t.label}
-                selected={value === t.id}
-                onClick={() => onChange(t.id)}
+                selected={!showCustomInput && value === t.id}
+                onClick={() => handlePresetClick(t.id)}
               />
             ))}
+            <Chip
+              icon="✏️"
+              label="직접 입력"
+              selected={showCustomInput}
+              onClick={handleCustomClick}
+            />
           </div>
+          {showCustomInput && (
+            <input
+              className={styles.customInput}
+              placeholder="예: MZ세대 말투, 할머니한테 쓰는 느낌..."
+              value={isCustom ? value : ''}
+              onChange={(e) => onChange(e.target.value)}
+              autoFocus
+            />
+          )}
         </div>
       )}
     </Card>

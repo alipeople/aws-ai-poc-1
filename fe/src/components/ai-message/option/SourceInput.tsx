@@ -37,7 +37,7 @@ export function SourceInput({
 }: SourceInputProps) {
   return (
     <Card>
-      <div className={styles.header}>④ 소재 입력</div>
+      <div className={styles.header}>① 소재 입력</div>
       <div className={styles.description}>
         직접 입력, 상품 URL 분석, 과거 문구 재활용 중 선택하세요
       </div>

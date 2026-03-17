@@ -25,6 +25,7 @@ class MessageGenerateRequest(BaseModel):
     source: str
     source_type: str = Field(alias="sourceType")
     season: Optional[str] = None
+    variant_count: int = Field(default=3, ge=1, le=4, alias="variantCount")
     target: Optional[str] = None
     send_time: Optional[str] = Field(default=None, alias="sendTime")
     agent_mode: AgentMode = Field(default=AgentMode.SINGLE, alias="agentMode")

@@ -42,6 +42,7 @@ class SingleAgentService:
         send_time: str = "",
         model_id: Optional[str] = None,
         spam_check_enabled: bool = True,
+        variant_count: int = 3,
     ) -> AsyncIterator[dict]:
         """
         Stream marketing message generation events.
@@ -77,6 +78,7 @@ class SingleAgentService:
                 season=season,
                 target=target,
                 send_time=send_time,
+                variant_count=variant_count,
             )
 
             yield {

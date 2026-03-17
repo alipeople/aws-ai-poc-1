@@ -39,6 +39,7 @@ async def generate_messages(request: MessageGenerateRequest, req: Request):
                 send_time=request.send_time or "",
                 model_id=request.model_id,
                 spam_check_enabled=request.spam_check_enabled,
+                variant_count=request.variant_count,
             ):
                 yield {"data": json.dumps(event, ensure_ascii=False)}
         except Exception as e:

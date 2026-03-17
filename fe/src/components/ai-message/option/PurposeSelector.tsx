@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import styles from './StepHeader.module.css';
@@ -20,9 +20,22 @@ export interface PurposeSelectorProps {
 }
 
 export function PurposeSelector({ value, onChange }: PurposeSelectorProps) {
+  const isCustom = value !== '' && !PURPOSES.some((p) => p.id === value);
+  const [showCustomInput, setShowCustomInput] = useState(isCustom);
+
+  const handleCustomClick = () => {
+    setShowCustomInput(true);
+    onChange('');
+  };
+
+  const handlePresetClick = (id: string) => {
+    setShowCustomInput(false);
+    onChange(id);
+  };
+
   return (
     <Card>
-      <div className={styles.header}>② 메시지 목적</div>
+      <div className={styles.header}>③ 메시지 목적</div>
       <div className={styles.description}>
         목적에 따라 AI가 톤과 구조를 최적화합니다
       </div>
@@ -32,11 +45,26 @@ export function PurposeSelector({ value, onChange }: PurposeSelectorProps) {
             key={p.id}
             icon={p.icon}
             label={p.label}
-            selected={value === p.id}
-            onClick={() => onChange(p.id)}
+            selected={!showCustomInput && value === p.id}
+            onClick={() => handlePresetClick(p.id)}
           />
         ))}
+        <Chip
+          icon="✏️"
+          label="직접 입력"
+          selected={showCustomInput}
+          onClick={handleCustomClick}
+        />
       </div>
+      {showCustomInput && (
+        <input
+          className={styles.customInput}
+          placeholder="예: 신제품 런칭, 재구매 유도, VIP 전용 혜택..."
+          value={isCustom ? value : ''}
+          onChange={(e) => onChange(e.target.value)}
+          autoFocus
+        />
+      )}
     </Card>
   );
 }

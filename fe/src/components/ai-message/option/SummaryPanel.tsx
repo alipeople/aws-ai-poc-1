@@ -92,7 +92,7 @@ export function SummaryPanel({
         label="소재"
         value={source ? (source.length > 20 ? source.slice(0, 20) + '…' : source) : ''}
       />
-      <SummaryRow label="시즌" value={SEASON_LABELS[season] || ''} />
+      <SummaryRow label="시즌" value={SEASON_LABELS[season] || season || ''} />
 
       {images && images.length > 0 && (
         <div className={styles.imagePreview}>
