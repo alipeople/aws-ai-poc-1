@@ -37,7 +37,6 @@
   border-radius: 16px;
   font-size: 14px;
   line-height: 1.6;
-  white-space: pre-wrap;
   word-break: break-word;
 }
 
@@ -45,6 +44,74 @@
   background: var(--bg);
   border: 1px solid var(--bdr);
   color: var(--tx);
+}
+
+/* Markdown rendered content inside AI bubbles */
+.bubbleAi .content h1,
+.bubbleAi .content h2,
+.bubbleAi .content h3 {
+  margin: 12px 0 6px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.bubbleAi .content h1 { font-size: 16px; }
+.bubbleAi .content h2 { font-size: 15px; }
+.bubbleAi .content h3 { font-size: 14px; }
+
+.bubbleAi .content p {
+  margin: 6px 0;
+}
+
+.bubbleAi .content ul,
+.bubbleAi .content ol {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.bubbleAi .content li {
+  margin: 3px 0;
+}
+
+.bubbleAi .content strong {
+  font-weight: 700;
+  color: var(--tx);
+}
+
+.bubbleAi .content code {
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'SF Mono', 'Menlo', monospace;
+}
+
+.bubbleAi .content pre {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--bdr);
+  border-radius: 8px;
+  padding: 12px;
+  margin: 8px 0;
+  overflow-x: auto;
+  word-break: break-word;
+}
+
+.bubbleAi .content pre code {
+  background: none;
+  padding: 0;
+  font-size: 13px;
+}
+
+.bubbleAi .content hr {
+  border: none;
+  border-top: 1px solid var(--bdr);
+  margin: 10px 0;
+}
+
+.bubbleAi .content blockquote {
+  border-left: 3px solid var(--pri);
+  margin: 8px 0;
+  padding: 4px 12px;
+  color: var(--tx-sub, #666);
 }
 
 .bubbleUser .content {

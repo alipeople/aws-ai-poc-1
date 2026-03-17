@@ -42,12 +42,12 @@ export default function ChatPage() {
           message,
           conversationHistory: updatedMessages,
           agentMode,
-          spamCheckEnabled,
+          spamCheckEnabled: false,
           modelId,
         }),
         {
           onChunk: (event) => {
-            if (event.type === 'text' && typeof event.data === 'string') {
+            if (event.type === 'text' && typeof event.data === 'string' && event.agentName !== 'spam_checker') {
               streamingRef.current += event.data;
               setStreamingContent(streamingRef.current);
             } else if (event.type === 'result' && typeof event.data === 'string' && event.agentName === 'spam_checker') {
@@ -101,11 +101,7 @@ export default function ChatPage() {
           messages={messages}
           streamingContent={streamingContent}
         />
-        {spamCheckerData && (
-          <div style={{ padding: '0 16px 16px' }}>
-            <SpamCheckerAnalysis data={spamCheckerData} />
-          </div>
-        )}
+
         <div className={styles.inputArea}>
           <QuickActions onAction={handleQuickAction} />
           <ChatInput onSend={handleSend} isStreaming={isStreaming} />

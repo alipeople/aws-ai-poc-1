@@ -15,7 +15,7 @@ from app.prompts.message_generator import (
     build_option_prompt,
     build_chat_system_prompt,
 )
-from app.prompts.message_reviewer import REVIEWER_SYSTEM_PROMPT
+from app.prompts.message_reviewer import REVIEWER_SYSTEM_PROMPT, CHAT_REVIEWER_SYSTEM_PROMPT
 from app.prompts.spam_checker import SPAM_CHECKER_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -240,7 +240,7 @@ class MultiAgentService:
 
             agents = [
                 AgentNodeSpec("generator", system_prompt),
-                AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
+                AgentNodeSpec("reviewer", CHAT_REVIEWER_SYSTEM_PROMPT),
             ]
             node_progress = {
                 "reviewer": "응답을 검토하고 있어요...",
