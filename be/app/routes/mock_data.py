@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from app.services.mock_data_service import MockDataService
 
-router = APIRouter(prefix="/api/mock", tags=["mock"])
+router = APIRouter(prefix="/api/mock", tags=["Mock 데이터"])
 _mock_service = MockDataService()
 
 

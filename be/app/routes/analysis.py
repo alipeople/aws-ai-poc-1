@@ -11,7 +11,7 @@ from app.services.web_page_fetcher import WebPageFetcher, BotBlockedError, RateL
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(tags=["URL 분석"])
 
 
 def _extract_json(text: str) -> dict:
@@ -27,16 +27,41 @@ def _extract_json(text: str) -> dict:
     raise ValueError("No JSON object found in response")
 
 
-@router.post("/api/analyze-url", response_model=UrlAnalysisResponse)
+@router.post(
+    "/api/analyze-url",
+    response_model=UrlAnalysisResponse,
+    summary="URL 상품 정보 분석",
+    description=(
+        "상품 페이지 URL을 분석하여 구조화된 상품 정보를 반환합니다.\n\n"
+        "**2단계 파이프라인**:\n"
+        "1. 웹 페이지 fetch (httpx → curl_cffi TLS 우회 → Naver 전용 추출기)\n"
+        "2. LLM이 추출된 텍스트에서 상품명·가격·할인율·카테고리·특징 구조화\n\n"
+        "**에러 코드**:\n"
+        "- `422`: 봇 차단 — 사이트 보안 정책으로 접근 불가\n"
+        "- `429`: 요청 제한 — 잠시 후 재시도 필요\n"
+        "- `502`: fetch 실패 또는 AI 분석 실패"
+    ),
+    responses={
+        200: {
+            "description": "상품 정보 분석 성공",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "productName": "유세린 하이알루론 수분크림",
+                        "price": "32,000원",
+                        "discount": "20%",
+                        "category": "스킨케어 > 크림",
+                        "features": ["히알루론산 함유", "48시간 보습", "민감성 피부 적합"],
+                    }
+                }
+            },
+        },
+        422: {"description": "봇 차단 — 사이트 보안 정책으로 페이지 접근 불가"},
+        429: {"description": "요청 제한 — 대상 사이트에서 429 응답"},
+        502: {"description": "페이지 fetch 실패 또는 AI 분석 실패"},
+    },
+)
 async def analyze_url(request: UrlAnalysisRequest):
-    """Analyze URL for product information using Strands Agent.
-
-    Two-stage pipeline:
-      1. Fetch web page content via WebPageFetcher (httpx → curl_cffi fallback)
-      2. Send extracted text to LLM for structured JSON extraction
-
-    Returns clear errors when fetch or LLM analysis fails.
-    """
     # Stage 1: Fetch and extract web page content
     try:
         fetcher = WebPageFetcher()

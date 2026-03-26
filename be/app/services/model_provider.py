@@ -5,12 +5,13 @@ Handles Bedrock model instantiation and available model catalog.
 from dataclasses import dataclass
 from typing import List
 from app.config import settings
+from app.models.requests import ModelId
 
 
 @dataclass
 class ModelInfo:
     """Model metadata for FE display."""
-    id: str
+    id: ModelId
     name: str
     provider: str
     description: str
@@ -21,31 +22,31 @@ class ModelInfo:
 #       apac.* (APAC 리전) 또는 global.* (전 세계) 프로필을 사용해야 합니다.
 AVAILABLE_MODELS: List[ModelInfo] = [
     ModelInfo(
-        id="global.anthropic.claude-opus-4-6-v1",
+        id=ModelId.CLAUDE_OPUS_4_6,
         name="Claude Opus 4.6",
         provider="Anthropic",
         description="최고 성능 플래그십 모델",
     ),
     ModelInfo(
-        id="apac.anthropic.claude-sonnet-4-20250514-v1:0",
+        id=ModelId.CLAUDE_SONNET_4,
         name="Claude Sonnet 4",
         provider="Anthropic",
         description="고성능 균형 모델 (추천)",
     ),
     ModelInfo(
-        id="global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        id=ModelId.CLAUDE_HAIKU_4_5,
         name="Claude Haiku 4.5",
         provider="Anthropic",
         description="빠르고 경제적인 모델",
     ),
     ModelInfo(
-        id="apac.amazon.nova-pro-v1:0",
+        id=ModelId.NOVA_PRO,
         name="Amazon Nova Pro",
         provider="Amazon",
         description="AWS 네이티브 고성능 모델",
     ),
     ModelInfo(
-        id="apac.amazon.nova-lite-v1:0",
+        id=ModelId.NOVA_LITE,
         name="Amazon Nova Lite",
         provider="Amazon",
         description="AWS 네이티브 경량 모델",
