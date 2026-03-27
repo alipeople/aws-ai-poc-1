@@ -3,23 +3,15 @@ import json
 import logging
 import re
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.models.requests import UrlAnalysisRequest
 from app.models.responses import UrlAnalysisResponse
 from app.services.model_provider import ModelProvider
-from app.services.web_page_fetcher import WebPageFetcher
+from app.services.web_page_fetcher import WebPageFetcher, BotBlockedError, RateLimitError, FetchError
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
-
-MOCK_RESPONSE = UrlAnalysisResponse(
-    productName="봄맞이 특가 상품",
-    price="29,900원",
-    discount="30%",
-    category="패션/의류",
-    features=["고품질 소재", "봄 시즌 한정", "무료 배송"],
-)
+router = APIRouter(tags=["URL 분석"])
 
 
 def _extract_json(text: str) -> dict:
@@ -35,32 +27,67 @@ def _extract_json(text: str) -> dict:
     raise ValueError("No JSON object found in response")
 
 
-@router.post("/api/analyze-url", response_model=UrlAnalysisResponse)
+@router.post(
+    "/api/analyze-url",
+    response_model=UrlAnalysisResponse,
+    summary="URL 상품 정보 분석",
+    description=(
+        "상품 페이지 URL을 분석하여 구조화된 상품 정보를 반환합니다.\n\n"
+        "**2단계 파이프라인**:\n"
+        "1. 웹 페이지 fetch (httpx → curl_cffi TLS 우회 → Naver 전용 추출기)\n"
+        "2. LLM이 추출된 텍스트에서 상품명·가격·할인율·카테고리·특징 구조화\n\n"
+        "**에러 코드**:\n"
+        "- `422`: 봇 차단 — 사이트 보안 정책으로 접근 불가\n"
+        "- `429`: 요청 제한 — 잠시 후 재시도 필요\n"
+        "- `502`: fetch 실패 또는 AI 분석 실패"
+    ),
+    responses={
+        200: {
+            "description": "상품 정보 분석 성공",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "productName": "유세린 하이알루론 수분크림",
+                        "price": "32,000원",
+                        "discount": "20%",
+                        "category": "스킨케어 > 크림",
+                        "features": ["히알루론산 함유", "48시간 보습", "민감성 피부 적합"],
+                    }
+                }
+            },
+        },
+        422: {"description": "봇 차단 — 사이트 보안 정책으로 페이지 접근 불가"},
+        429: {"description": "요청 제한 — 대상 사이트에서 429 응답"},
+        502: {"description": "페이지 fetch 실패 또는 AI 분석 실패"},
+    },
+)
 async def analyze_url(request: UrlAnalysisRequest):
-    """Analyze URL for product information using Strands Agent.
-
-    Two-stage pipeline:
-      1. Fetch web page content via httpx and extract text
-      2. Send extracted text to LLM for structured JSON extraction
-
-    Falls back to URL-only prompt if fetch fails, and to mock data
-    if LLM call also fails.
-    """
+    # Stage 1: Fetch and extract web page content
     try:
-        # Stage 1: Fetch and extract web page content
-        page_content: str | None = None
-        try:
-            fetcher = WebPageFetcher()
-            page_content = await fetcher.fetch(request.url)
-            logger.info("Fetched %d chars from %s", len(page_content), request.url)
-        except Exception as fetch_err:
-            logger.warning(
-                "Failed to fetch URL %s, falling back to URL-only prompt: %s",
-                request.url,
-                fetch_err,
-            )
+        fetcher = WebPageFetcher()
+        page_content = await fetcher.fetch(request.url)
+        logger.info("Fetched %d chars from %s", len(page_content), request.url)
+    except RateLimitError as e:
+        logger.warning("Rate limited: %s", e)
+        raise HTTPException(status_code=429, detail=str(e))
+    except BotBlockedError as e:
+        logger.warning("Bot blocked: %s", e)
+        raise HTTPException(status_code=422, detail=str(e))
+    except FetchError as e:
+        logger.warning("Fetch failed: %s", e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"페이지를 가져올 수 없습니다: {e}",
+        )
+    except Exception as e:
+        logger.warning("Unexpected fetch error for %s: %s", request.url, e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"페이지를 가져올 수 없습니다: {e}",
+        )
 
-        # Stage 2: LLM analysis
+    # Stage 2: LLM analysis
+    try:
         from strands import Agent  # Lazy import — top-level fails without AWS creds
 
         model_provider = ModelProvider()
@@ -80,32 +107,19 @@ async def analyze_url(request: UrlAnalysisRequest):
             ),
         )
 
-        if page_content:
-            prompt = (
-                "다음은 웹 페이지에서 추출한 상품 정보입니다. "
-                "이 정보를 분석하여 상품 정보를 구조화된 JSON으로 반환하세요.\n\n"
-                f"{page_content}\n\n"
-                "다음 JSON 형식으로 반환하세요:\n"
-                "{\n"
-                '    "productName": "상품명",\n'
-                '    "price": "가격",\n'
-                '    "discount": "할인율 (없으면 null)",\n'
-                '    "category": "카테고리",\n'
-                '    "features": ["특징1", "특징2", "특징3"]\n'
-                "}"
-            )
-        else:
-            prompt = (
-                f"다음 URL의 상품 정보를 분석해주세요: {request.url}\n\n"
-                "다음 JSON 형식으로 반환하세요:\n"
-                "{\n"
-                '    "productName": "상품명",\n'
-                '    "price": "가격",\n'
-                '    "discount": "할인율 (없으면 null)",\n'
-                '    "category": "카테고리",\n'
-                '    "features": ["특징1", "특징2", "특징3"]\n'
-                "}"
-            )
+        prompt = (
+            "다음은 웹 페이지에서 추출한 상품 정보입니다. "
+            "이 정보를 분석하여 상품 정보를 구조화된 JSON으로 반환하세요.\n\n"
+            f"{page_content}\n\n"
+            "다음 JSON 형식으로 반환하세요:\n"
+            "{\n"
+            '    "productName": "상품명",\n'
+            '    "price": "가격",\n'
+            '    "discount": "할인율 (없으면 null)",\n'
+            '    "category": "카테고리",\n'
+            '    "features": ["특징1", "특징2", "특징3"]\n'
+            "}"
+        )
 
         result = await asyncio.to_thread(agent, prompt)
         response_text = str(result)
@@ -137,5 +151,8 @@ async def analyze_url(request: UrlAnalysisRequest):
         )
 
     except Exception as e:
-        logger.warning("URL analysis failed, returning mock data: %s", e)
-        return MOCK_RESPONSE
+        logger.exception("LLM analysis failed: %s", e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"AI 분석에 실패했습니다: {e}",
+        )

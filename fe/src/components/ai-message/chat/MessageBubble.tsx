@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Markdown from 'react-markdown';
 import styles from './MessageBubble.module.css';
 
 export interface MessageBubbleProps {
@@ -22,7 +23,11 @@ export function MessageBubble({ role, content, agentName, isStreaming }: Message
           <div className={styles.agentLabel}>{agentName}</div>
         )}
         <div className={styles.content}>
-          {content}
+          {isAi ? (
+            <Markdown>{content}</Markdown>
+          ) : (
+            content
+          )}
           {isStreaming && <span className={styles.cursor} />}
         </div>
       </div>

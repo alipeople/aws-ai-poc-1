@@ -65,6 +65,40 @@ def _build_channel_line(channel: str) -> str:
 판단한 채널과 추천 사유를 detectedChannel, channelReason 필드에 포함하세요."""
 
 
+VARIANT_LABELS = ["A", "B", "C", "D"]
+VARIANT_STYLES = ["간결형", "감성형", "긴급형", "스토리형"]
+
+
+def _build_variants_schema(variant_count: int) -> str:
+    items = []
+    for i in range(variant_count):
+        label = VARIANT_LABELS[i]
+        style = VARIANT_STYLES[i]
+        if i == 0:
+            items.append(
+                f'    {{\n'
+                f'      "label": "{label}",\n'
+                f'      "title": "{style}",\n'
+                f'      "text": "(광고) 봄맞이 특가!\\n\\n지금 바로 확인하세요.\\n최대 50% 할인 중!\\n\\n무료거부 080XXXXXXXX",\n'
+                f'      "predictedOpenRate": 예상오픈율(숫자),\n'
+                f'      "predictedClickRate": 예상클릭률(숫자),\n'
+                f'      "charCount": 글자수(숫자)\n'
+                f'    }}'
+            )
+        else:
+            items.append(
+                f'    {{\n'
+                f'      "label": "{label}",\n'
+                f'      "title": "{style}",\n'
+                f'      "text": "메시지 내용",\n'
+                f'      "predictedOpenRate": 예상오픈율(숫자),\n'
+                f'      "predictedClickRate": 예상클릭률(숫자),\n'
+                f'      "charCount": 글자수(숫자)\n'
+                f'    }}'
+            )
+    return ",\n".join(items)
+
+
 def build_option_prompt(
     channel: str,
     purpose: str,
@@ -73,6 +107,7 @@ def build_option_prompt(
     season: str = "",
     target: str = "",
     send_time: str = "",
+    variant_count: int = 3,
 ) -> str:
     """Build the user prompt for option-based message generation."""
     season_line = f"- 시즌/이벤트: {season}" if season else ""
@@ -82,7 +117,11 @@ def build_option_prompt(
     purpose_line = _build_purpose_line(purpose)
     channel_line = _build_channel_line(channel)
 
-    return f"""다음 조건으로 마케팅 메시지 3종(A/B/C)을 작성해주세요:
+    labels = VARIANT_LABELS[:variant_count]
+    label_str = "/".join(labels)
+    variants_schema = _build_variants_schema(variant_count)
+
+    return f"""다음 조건으로 마케팅 메시지 {variant_count}종({label_str})을 작성해주세요:
 
 {channel_line}
 {purpose_line}
@@ -100,30 +139,7 @@ def build_option_prompt(
   "detectedChannel": "판단한 최적 발송 채널 (SMS, LMS, MMS, 알림톡, RCS 중 하나. 채널이 명시된 경우 이 필드 생략)",
   "channelReason": "채널 추천 사유 (채널이 명시된 경우 이 필드 생략)",
   "variants": [
-    {{
-      "label": "A",
-      "title": "간결형",
-      "text": "(광고) 봄맞이 특가!\\n\\n지금 바로 확인하세요.\\n최대 50% 할인 중!\\n\\n무료거부 080XXXXXXXX",
-      "predictedOpenRate": 예상오픈율(숫자),
-      "predictedClickRate": 예상클릭률(숫자),
-      "charCount": 글자수(숫자)
-    }},
-    {{
-      "label": "B",
-      "title": "감성형",
-      "text": "메시지 내용 (90자 이상일 경우 \\n으로 줄바꿈 필수)",
-      "predictedOpenRate": 예상오픈율(숫자),
-      "predictedClickRate": 예상클릭률(숫자),
-      "charCount": 글자수(숫자)
-    }},
-    {{
-      "label": "C",
-      "title": "긴급형",
-      "text": "메시지 내용",
-      "predictedOpenRate": 예상오픈율(숫자),
-      "predictedClickRate": 예상클릭률(숫자),
-      "charCount": 글자수(숫자)
-    }}
+{variants_schema}
   ]
 }}"""
 

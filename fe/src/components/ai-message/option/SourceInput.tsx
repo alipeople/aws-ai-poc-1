@@ -37,7 +37,7 @@ export function SourceInput({
 }: SourceInputProps) {
   return (
     <Card>
-      <div className={styles.header}>④ 소재 입력</div>
+      <div className={styles.header}>① 소재 입력</div>
       <div className={styles.description}>
         직접 입력, 상품 URL 분석, 과거 문구 재활용 중 선택하세요
       </div>
@@ -74,7 +74,7 @@ export function SourceInput({
             🔗 상품 URL 분석 <Badge variant="ai">AI</Badge>
           </div>
           <div className={styles.description}>
-            카페24, 쿠팡, 네이버 스마트스토어, 11번가 링크를 지원합니다
+            카페24, 네이버 브랜드스토어, 11번가 등 대부분의 쇼핑몰 링크를 지원합니다
           </div>
           <div className={styles.urlRow}>
             <input

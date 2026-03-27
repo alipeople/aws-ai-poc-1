@@ -215,3 +215,29 @@
 .targetSection {
   margin-bottom: 16px;
 }
+
+/* Custom input for "직접 입력" option */
+.customInput {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--bdr);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--tx);
+  background: var(--bg);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.customInput:focus {
+  border-color: var(--priL);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+}
+
+.customInput::placeholder {
+  color: var(--tx3);
+}

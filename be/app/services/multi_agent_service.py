@@ -15,7 +15,7 @@ from app.prompts.message_generator import (
     build_option_prompt,
     build_chat_system_prompt,
 )
-from app.prompts.message_reviewer import REVIEWER_SYSTEM_PROMPT
+from app.prompts.message_reviewer import REVIEWER_SYSTEM_PROMPT, CHAT_REVIEWER_SYSTEM_PROMPT
 from app.prompts.spam_checker import SPAM_CHECKER_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
@@ -140,6 +140,7 @@ class MultiAgentService:
         send_time: str = "",
         model_id: Optional[str] = None,
         spam_check_enabled: bool = True,
+        variant_count: int = 3,
     ) -> AsyncIterator[dict]:
         """
         Stream multi-agent message generation events.
@@ -168,6 +169,7 @@ class MultiAgentService:
                 season=season,
                 target=target,
                 send_time=send_time,
+                variant_count=variant_count,
             )
 
             agents = [
@@ -240,7 +242,7 @@ class MultiAgentService:
 
             agents = [
                 AgentNodeSpec("generator", system_prompt),
-                AgentNodeSpec("reviewer", REVIEWER_SYSTEM_PROMPT),
+                AgentNodeSpec("reviewer", CHAT_REVIEWER_SYSTEM_PROMPT),
             ]
             node_progress = {
                 "reviewer": "응답을 검토하고 있어요...",

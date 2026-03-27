@@ -1,10 +1,20 @@
 // ===== Enums =====
 export type AgentMode = 'single' | 'multi';
 
-export type Channel = 'SMS' | 'LMS' | 'MMS' | '알림톡' | '브랜드' | 'RCS';
-export type Purpose = '프로모션' | '안내' | '이벤트' | '리마인더' | '리뷰요청' | '인사';
-export type Tone = '친근체' | '격식체' | '유머러스' | '긴급체' | '감성체' | '친절한' | '세심한' | '전문적' | '위트있는' | '따뜻한' | '간결한';
+/** 발송 채널 (BE Channel StrEnum과 동기화 — 소문자 ID) */
+export type Channel = 'sms' | 'lms' | 'mms' | 'alimtalk' | 'brand' | 'rcs';
+/** 메시지 목적 프리셋 ID. 직접 입력 시 자유 텍스트도 가능 */
+export type Purpose = 'promotion' | 'notice' | 'event' | 'reminder' | 'review' | 'greeting' | string;
+/** 톤앤매너 프리셋 ID. 직접 입력 시 자유 텍스트도 가능 */
+export type Tone = 'friendly' | 'formal' | 'humor' | 'emotional' | 'urgent' | 'kind' | 'caring' | 'professional' | 'witty' | 'warm' | 'concise' | string;
 export type SourceType = 'direct' | 'url' | 'past';
+/** Bedrock LLM 모델 ID (BE ModelId StrEnum과 동기화) */
+export type ModelId =
+  | 'global.anthropic.claude-opus-4-6-v1'
+  | 'apac.anthropic.claude-sonnet-4-20250514-v1:0'
+  | 'global.anthropic.claude-haiku-4-5-20251001-v1:0'
+  | 'apac.amazon.nova-pro-v1:0'
+  | 'apac.amazon.nova-lite-v1:0';
 
 export type Theme = 'sendon' | 'toss' | 'retro' | 'dark' | 'pastel';
 
@@ -31,11 +41,12 @@ export interface MessageGenerateRequest {
   source: string;
   sourceType: SourceType;
   season?: string;
+  variantCount?: number; // 1~4, default 3
   target?: string;
   sendTime?: string;
   agentMode: AgentMode;
   spamCheckEnabled: boolean;
-  modelId: string;
+  modelId: ModelId | string;
 }
 
 export interface MessageVariant {
@@ -121,7 +132,7 @@ export interface ChatRequest {
   conversationHistory: ChatMessage[];
   agentMode: AgentMode;
   spamCheckEnabled: boolean;
-  modelId: string;
+  modelId: ModelId | string;
 }
 
 // ===== SSE Stream Events =====

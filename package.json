@@ -10,7 +10,11 @@
     "build:be": "echo 'BE has no build step (Python)'",
     "install:fe": "pnpm -C fe install",
     "install:be": "python -m venv be/.venv && be/.venv/bin/pip install -r be/requirements.txt",
-    "install:all": "pnpm install && pnpm run install:fe && pnpm run install:be"
+    "install:all": "pnpm install && pnpm run install:fe && pnpm run install:be",
+    "demo": "concurrently \"pnpm run demo:fe\" \"pnpm run demo:be\" \"pnpm run demo:tunnel\" --names \"FE,BE,TUNNEL\" --prefix-colors \"cyan,green,magenta\"",
+    "demo:fe": "dotenv -e .env -o -e .env.demo -- pnpm -C fe run dev",
+    "demo:be": "dotenv -e .env -o -e .env.demo -- sh -c \"cd be && .venv/bin/uvicorn app.main:app --reload --port 50001\"",
+    "demo:tunnel": "cloudflared tunnel run aws-poc-what"
   },
   "devDependencies": {
     "concurrently": "^8.2.0",

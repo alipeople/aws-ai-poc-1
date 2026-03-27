@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Badge } from '@/components/ui/Badge';
 import type { MessageVariant } from '@/types/api';
 import styles from './ResultCards.module.css';
@@ -32,10 +32,25 @@ const MOCK_VARIANTS: MessageVariant[] = [
   },
 ];
 
+function checkAdLabel(text: string): boolean {
+  return text.trimStart().startsWith('(광고)');
+}
+
+function checkOptOut(text: string): boolean {
+  return /무료거부\s*0\d{2}/.test(text);
+}
+
+function autoResize(el: HTMLTextAreaElement) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 export interface ResultCardsProps {
   variants: MessageVariant[];
   selectedIndex: number;
   onSelect: (index: number) => void;
+  onVariantTextChange?: (index: number, newText: string) => void;
+  onReanalyzeSpam?: (index: number, text: string) => void;
   onReset?: () => void;
   onRegenerate?: () => void;
   onSend?: () => void;
@@ -47,6 +62,8 @@ export function ResultCards({
   variants,
   selectedIndex,
   onSelect,
+  onVariantTextChange,
+  onReanalyzeSpam,
   onReset,
   onRegenerate,
   onSend,
@@ -54,6 +71,26 @@ export function ResultCards({
   spamBlocked,
 }: ResultCardsProps) {
   const items = variants.length > 0 ? variants : MOCK_VARIANTS;
+  const textareaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
+
+  const handleTextChange = useCallback(
+    (i: number, e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      autoResize(e.target);
+      onVariantTextChange?.(i, e.target.value);
+    },
+    [onVariantTextChange],
+  );
+
+  const setTextareaRef = useCallback(
+    (i: number) => (el: HTMLTextAreaElement | null) => {
+      textareaRefs.current[i] = el;
+      if (el) {
+        // Auto-resize on mount
+        requestAnimationFrame(() => autoResize(el));
+      }
+    },
+    [],
+  );
 
   return (
     <>
@@ -66,6 +103,10 @@ export function ResultCards({
           ]
             .filter(Boolean)
             .join(' ');
+
+          const hasAdLabel = checkAdLabel(v.text);
+          const hasOptOut = checkOptOut(v.text);
+          const charCount = v.text.length;
 
           return (
             <div key={v.label} className={cls} onClick={() => onSelect(i)}>
@@ -83,7 +124,35 @@ export function ResultCards({
                     ))}
                   </div>
                 )}
-                <div className={styles.messageText}>{v.text}</div>
+                <textarea
+                  ref={setTextareaRef(i)}
+                  className={styles.editableText}
+                  value={v.text}
+                  onChange={(e) => handleTextChange(i, e)}
+                  onClick={(e) => e.stopPropagation()}
+                  rows={3}
+                />
+                <div className={styles.complianceBar} onClick={(e) => e.stopPropagation()}>
+                  <span className={hasAdLabel ? styles.complianceOk : styles.complianceFail}>
+                    {hasAdLabel ? '✅' : '❌'} 광고표기
+                  </span>
+                  <span className={hasOptOut ? styles.complianceOk : styles.complianceFail}>
+                    {hasOptOut ? '✅' : '❌'} 수신거부
+                  </span>
+                  <span className={styles.complianceCount}>{charCount}자</span>
+                  {onReanalyzeSpam && (
+                    <button
+                      type="button"
+                      className={styles.reanalyzeBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReanalyzeSpam(i, v.text);
+                      }}
+                    >
+                      🔍 스팸 재분석
+                    </button>
+                  )}
+                </div>
               </div>
               <div className={styles.statsRow}>
                 <div className={styles.statItem}>
@@ -101,7 +170,7 @@ export function ResultCards({
                 <div className={styles.statItem}>
                   <span className={styles.statLabel}>글자수</span>
                   <span className={styles.statValueNeutral}>
-                    {v.charCount}자
+                    {charCount}자
                   </span>
                 </div>
               </div>

@@ -12,7 +12,7 @@ import type {
   FatigueAnalysis,
 } from '@/types/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:50001';
 
 async function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -20,7 +20,15 @@ async function fetchJSON<T>(path: string, options?: RequestInit): Promise<T> {
     ...options,
   });
   if (!response.ok) {
-    throw new Error(`API error ${response.status}: ${response.statusText}`);
+    // Try to extract detail message from FastAPI error response
+    let detail = response.statusText;
+    try {
+      const body = await response.json();
+      if (body.detail) detail = body.detail;
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(detail);
   }
   return response.json() as Promise<T>;
 }
@@ -111,6 +119,7 @@ export const api = {
     spam_check_enabled: request.spamCheckEnabled,
     model_id: request.modelId,
     tone_analysis: request.toneAnalysis,
+    variant_count: request.variantCount,
   }),
   /** Build request body for chat endpoint */
   buildChatBody: (request: ChatRequest) => ({

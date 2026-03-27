@@ -22,7 +22,7 @@ export interface ChannelSelectorProps {
 export function ChannelSelector({ value, onChange }: ChannelSelectorProps) {
   return (
     <Card>
-      <div className={styles.header}>① 채널 선택</div>
+      <div className={styles.header}>② 채널 선택</div>
       <div className={styles.chipGrid}>
         {CHANNELS.map((ch) => (
           <Chip

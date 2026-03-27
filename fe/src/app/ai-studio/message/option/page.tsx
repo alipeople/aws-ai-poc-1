@@ -39,6 +39,7 @@ export default function OptionPage() {
 
   // Result state
   const [variants, setVariants] = useState<MessageVariant[]>([]);
+  const [editedVariants, setEditedVariants] = useState<MessageVariant[]>([]);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [spamCheckerData, setSpamCheckerData] = useState<SpamCheckerResult | null>(null);
   const [detectedPurpose, setDetectedPurpose] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export default function OptionPage() {
   const [performanceTip, setPerformanceTip] = useState<string | null>(null);
 
   const accumulatedTextRef = useRef('');
+  const hasStreamErrorRef = useRef(false);
   const resultAreaRef = useRef<HTMLDivElement>(null);
   const { streamSSE } = useSSE();
   const { agentMode, modelId, spamCheckEnabled } = useSettings();
@@ -80,6 +82,7 @@ export default function OptionPage() {
     setChannelReason(null);
     setPerformanceTip(null);
     accumulatedTextRef.current = '';
+    hasStreamErrorRef.current = false;
     setLoadingStep('메시지를 생성하고 있습니다...');
     setTimeout(() => resultAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
@@ -109,6 +112,7 @@ export default function OptionPage() {
                 setSpamCheckerData(parsed as SpamCheckerResult);
               } else if (parsed.variants && Array.isArray(parsed.variants)) {
                 setVariants(parsed.variants as MessageVariant[]);
+                setEditedVariants([...(parsed.variants as MessageVariant[])]);
                 if (parsed.detectedPurpose) {
                   setDetectedPurpose(parsed.detectedPurpose as string);
                 }
@@ -126,12 +130,15 @@ export default function OptionPage() {
               // Result parsing failure — will use mock variants
             }
           } else if (event.type === 'error') {
+            hasStreamErrorRef.current = true;
             setError(typeof event.data === 'string' ? event.data : '생성 중 오류가 발생했습니다.');
           }
         },
         onComplete: () => {
           setIsLoading(false);
-          setShowResults(true);
+          if (!hasStreamErrorRef.current) {
+            setShowResults(true);
+          }
         },
         onError: (err) => {
           setIsLoading(false);
@@ -140,6 +147,25 @@ export default function OptionPage() {
       }
     );
   }, [channel, purpose, tone, source, sourceType, season, agentMode, spamCheckEnabled, modelId, streamSSE]);
+
+  const handleVariantTextChange = useCallback((index: number, newText: string) => {
+    setEditedVariants((prev) => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], text: newText, charCount: newText.length };
+      }
+      return next;
+    });
+  }, []);
+
+  const handleReanalyzeSpam = useCallback(async (index: number, text: string) => {
+    try {
+      const result = await api.mockData.getSpamScore(text);
+      setSpamCheckerData(result as unknown as SpamCheckerResult);
+    } catch {
+      // Spam re-analysis failed — non-critical
+    }
+  }, []);
 
   const handleUrlAnalyze = useCallback(async () => {
     if (!sourceUrl) return;
@@ -157,8 +183,9 @@ export default function OptionPage() {
         .join('\n');
       setSource(summary);
       setSourceType('direct');
-    } catch {
-      setError('URL 분석에 실패했습니다. 직접 입력해주세요.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'URL 분석에 실패했습니다.';
+      setError(message);
     } finally {
       setIsAnalyzing(false);
     }
@@ -175,16 +202,6 @@ export default function OptionPage() {
       <div className={styles.layout}>
       {/* Left column: wizard steps + generate button */}
       <div className={styles.steps}>
-        <ChannelSelector value={channel} onChange={setChannel} />
-        {channel === 'mms' && <ImageUploader images={mmsImages} onChange={setMmsImages} />}
-        <PurposeSelector value={purpose} onChange={setPurpose} />
-        <SeasonSelector value={season} onChange={setSeason} />
-        <ToneSelector
-          value={tone}
-          onChange={setTone}
-          aiMode={aiMode}
-          onAiModeChange={setAiMode}
-        />
         <SourceInput
           value={source}
           onChange={setSource}
@@ -195,6 +212,16 @@ export default function OptionPage() {
           onAnalyzeUrl={handleUrlAnalyze}
           isAnalyzing={isAnalyzing}
         />
+        <ChannelSelector value={channel} onChange={setChannel} />
+        {channel === 'mms' && <ImageUploader images={mmsImages} onChange={setMmsImages} />}
+        <PurposeSelector value={purpose} onChange={setPurpose} />
+        <ToneSelector
+          value={tone}
+          onChange={setTone}
+          aiMode={aiMode}
+          onAiModeChange={setAiMode}
+        />
+        <SeasonSelector value={season} onChange={setSeason} />
 
         <div ref={resultAreaRef} />
         <GenerateButton onClick={handleGenerate} isLoading={isLoading} disabled={!canGenerate} />
@@ -234,10 +261,12 @@ export default function OptionPage() {
             )}
 
             <ResultCards
-              variants={variants}
+              variants={editedVariants.length > 0 ? editedVariants : variants}
               selectedIndex={selectedVariantIndex}
               onSelect={setSelectedVariantIndex}
-              onReset={() => { setShowResults(false); setVariants([]); setSpamCheckerData(null); setDetectedPurpose(null); setDetectedChannel(null); setChannelReason(null); setPerformanceTip(null); }}
+              onVariantTextChange={handleVariantTextChange}
+              onReanalyzeSpam={handleReanalyzeSpam}
+              onReset={() => { setShowResults(false); setVariants([]); setEditedVariants([]); setSpamCheckerData(null); setDetectedPurpose(null); setDetectedChannel(null); setChannelReason(null); setPerformanceTip(null); }}
               onRegenerate={handleGenerate}
               images={channel === 'mms' ? mmsImages : undefined}
               spamBlocked={isSpamBlocked}
